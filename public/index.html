@@ -200,9 +200,15 @@
       for (let i = 0; i < 9; i++) {
         document.getElementById(i).innerText = "";
       }
-      db.collection("games").doc(gameId).update({
-        board: boardArr
-      });
+      if (gameId != "") {
+        try {
+          db.collection("games").doc(gameId).update({
+            board: boardArr
+          });
+        } catch (e) {
+          console.error(r);
+        }
+      }
     }
 
     function hostGame() {
