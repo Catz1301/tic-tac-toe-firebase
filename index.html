@@ -1,0 +1,242 @@
+
+<!-- READ ME!!!!!!!!!!!!!!!
+
+1. This is a simple tic tac toe game. The game is played on a 3x3 grid.
+2. The game is played by two players. One player is X and the other player is O.
+3. This game will be played and data processed on client and firebase.
+4. In order to play the game, you must log in, and you will be shown two boxes. One box is to start a game, the other is to join a game.
+5. When starting or joining a game, you will need a 4 digit pin. This pin simply acts as a game id.
+6. When you start a game, you will be given a pin. You can give this pin to your friend so they can join your game.
+7. When you join a game, you will need a pin. This pin is the pin that your friend gave you.
+8. When you join a game, there will be 2 players associated with the game, and no more people can join. At that time, the game will start.
+9. When the game ends, the game will be deleted from firebase. there will be an option to play again with the same person, without having swap pins again.
+-->
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="index.css"/>
+  <style>
+    /* Make the board take up 80 percent of the page, starting from the top */
+    
+  </style>
+</head>
+<body>
+  <div class="boardWrapper">
+    <div class="board">
+      <div class="cell" id="0" onclick="squareClicked(this)"></div>
+      <div class="cell" id="1" onclick="squareClicked(this)"></div>
+      <div class="cell" id="2" onclick="squareClicked(this)"></div>
+      <div class="cell" id="3" onclick="squareClicked(this)"></div>
+      <div class="cell" id="4" onclick="squareClicked(this)"></div>
+      <div class="cell" id="5" onclick="squareClicked(this)"></div>
+      <div class="cell" id="6" onclick="squareClicked(this)"></div>
+      <div class="cell" id="7" onclick="squareClicked(this)"></div>
+      <div class="cell" id="8" onclick="squareClicked(this)"></div>
+    </div>
+  </div>
+  <div class="gameControlsWrapper">
+    <div id="gamecontrols">
+      <button id="hostButton" onclick="hostGame()">Start Game</button>
+      <button id="joinButton" onclick="joinGame()">Join Game</button>
+      <p id="opponentName"></p>
+    </div>
+  </div>
+  <!-- <div class="login">
+    <div class="login-box">
+      <div class="login-title">Login</div>
+      <div class="login-input">
+        <input type="text" placeholder="Username" id="username" />
+      </div>
+      <div class="login-input">
+        <input type="password" placeholder="Password" id="password" />
+      </div>
+      <div class="login-input">
+        <button onclick="login()">Login</button>
+      </div>
+    </div> -->
+
+  </div>
+  <!-- Insert this script at the bottom of the HTML, but before you use any Firebase services -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js'
+
+    // If you enabled Analytics in your project, add the Firebase SDK for Google Analytics
+    import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js'
+
+    // Add Firebase products that you want to use
+    import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js'
+    import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js'
+    // import firebase from "firebase/compat/app";
+    // // Required for side-effects
+    // import "firebase/firestore";
+    
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+  
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+      apiKey: "AIzaSyAFURL-3e0iEEl1CQjLF_LK0ZUBtPk_x0Q",
+      authDomain: "tik-tac-toe-firebase.firebaseapp.com",
+      projectId: "tik-tac-toe-firebase",
+      storageBucket: "tik-tac-toe-firebase.appspot.com",
+      messagingSenderId: "852928793391",
+      appId: "1:852928793391:web:cef9c232ef77f991cdafda",
+      measurementId: "G-4MHB0P9S38"
+    };
+  
+    // // Initialize Firebase
+    // const app = initializeApp(firebaseConfig);
+    // const analytics = getAnalytics(app);
+    // const firestore = getFirestore(app);
+    const app = firebase.initializeApp(firebaseConfig);
+    // Initialize Cloud Firestore and get a reference to the service
+    const db = firebase.firestore();
+    window.app = app;
+    // window.analytics = analytics;
+    window.db = db;
+    // firebase.initializeApp(firebaseConfig);
+
+
+    // Initialize Cloud Firestore and get a reference to the service
+    // var db = firebase.firestore();
+    // const db = firestore;
+    </script>
+    <script>
+    // import firebase from "firebase/compat/app";
+    // Required for side-effects
+    // import "firebase/firestore";
+    var boardArr = Array(9).fill(null);
+    var isHost = true; // for testing purposes only. Set accordingly when in prod.
+    var isMeX = isHost;
+    var isMeNext = isHost;
+    var showGameControls = true; // will show the start game and join game buttons
+
+    console.log(isHost, isMeX, isMeNext);
+    function squareClicked(element) {
+      let id = element.id;
+      console.log(id);
+      if (isMeNext) {
+        setSquare(id);
+        isMeNext = false;
+      }
+      else {
+        setSquare(id);
+        isMeNext = true;
+      }
+      if (boardArr[id] == null) {
+        boardArr[id] = isMeX ? 'X' : 'O';
+        document.getElementById(id).innerText = isMeX ? 'X' : 'O';
+      }
+      // for when texting
+      isMeX = !isMeX;
+    }
+
+    function setSquare(squareId) {
+      if (boardArr[squareId] == null) {
+        boardArr[squareId] = isMeX ? 'X' : 'O';
+        document.getElementById(squareId).innerText = isMeX ? 'X' : 'O';
+      }
+      // send off to firebase
+    }
+
+    function getSquare(squareId) {
+      // get from firebase
+      return boardArr[squareId];
+    }
+
+    function checkForNickname() {
+      var nickname = localStorage.getItem("nickname");
+      if (nickname == null) {
+        nickname = prompt("Please enter a nickname");
+        if (nickname == "") {
+          alert("Your nickname cannot be empty.");
+          checkForNickname();
+        } else {
+          localStorage.setItem("nickname", nickname);
+        }
+      }
+      window.nickname = nickname;
+    }
+
+    function resetBoard() {
+      boardArr = Array(9).fill(null);
+      for (let i = 0; i < 9; i++) {
+        document.getElementById(i).innerText = "";
+      }
+    }
+
+    function hostGame() {
+      checkForNickname();
+      resetBoard();
+      // create a game in firebase
+      // get the game id
+      // display the game id
+      // display the join game button
+      // hide the host game button
+      // generate random 4 digit pin
+      let pin = Math.floor(Math.random() * 9000) + 1000;
+      db.collection("games").doc(pin.toString()).set({
+        player1: nickname,
+        player2: "",
+        board: boardArr
+      });
+    }
+
+    function joinGame() {
+      checkForNickname();
+      resetBoard();
+      // get the game id from the user
+      // get the game from firebase
+      // display the game id
+      // hide the join game button
+      // hide the host game button
+      let gameId = prompt("Please enter the game id");
+      if (gameId != null && gameId.length == 4) {
+        // check to see if letters are in the game id
+        if (gameId.match(/[a-z]/i)) {
+          alert("Please enter a valid game id");
+          joinGame(); // prolly a mem leak here. idk how to fix it
+        }
+        else {
+          // the goal is to check for an existing document with the gameid. Then make a snapshot listener for the specific document.
+          // always update the local board. only update the firebase board when the local board changes.
+          /* db.collection("games").get().then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+
+              console.log(`${doc.id} => ${doc.data()}`);
+            });
+          }); */
+          var docRef = db.collection("games").doc(gameId);
+
+          docRef.get().then((doc) => {
+            if (doc.exists) {
+              console.log("Document data:", doc.data());
+              alert("Joining Game")
+              db.collection("games").doc(gameId).update({
+                player2: nickname
+              });
+              document.getElementById("opponentName").innerText = doc.data().player1;
+            } else {
+              // doc.data() will be undefined in this case
+              console.log("No such document!");
+              alert("No active game with that id");
+            }
+          }).catch((error) => {
+            console.error("Error getting document:", error);
+            alert("There was an error retrieving the game. Check the console for more details.")
+          });
+
+        }
+      }
+      
+    }
+  </script>
+</body>
+</html>

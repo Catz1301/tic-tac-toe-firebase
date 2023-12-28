@@ -1,0 +1,29 @@
+[debug] [2023-12-27T04:10:31.632Z] ----------------------------------------------------------------------
+[debug] [2023-12-27T04:10:31.635Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\whiskersOfDeath\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init
+[debug] [2023-12-27T04:10:31.635Z] CLI Version:   13.0.2
+[debug] [2023-12-27T04:10:31.635Z] Platform:      win32
+[debug] [2023-12-27T04:10:31.635Z] Node Version:  v21.5.0
+[debug] [2023-12-27T04:10:31.636Z] Time:          Tue Dec 26 2023 23:10:31 GMT-0500 (Eastern Standard Time)
+[debug] [2023-12-27T04:10:31.636Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2023-12-27T04:10:31.645Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2023-12-27T04:10:31.645Z] > authorizing via signed-in user (tbony2022@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\whiskersOfDeath\Development\Web projects\tic-tac-toe-firebase
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[info] i  If you want to create a project in a Google Cloud organization or folder, please use "firebase projects:create" instead, and return to this command when you've created the project. 
