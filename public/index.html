@@ -189,7 +189,27 @@
         player2: "",
         board: boardArr
       });
+      setListener(pin.toString());
+      document.getElementById("hostButton").style.display = "none";
+      document.getElementById("joinButton").style.display = "none";
+      document.getElementById("opponentName").innerText = "Waiting for opponent...";
       document.getElementById("gameId").innerText = "Game ID: " + pin;
+    }
+
+    function setListener(gameId) {
+      db.collection("games").doc(gameId)
+        .onSnapshot((doc) => {
+            console.log("Current data: ", doc.data());
+            // update the local board
+            boardArr = doc.data().board;
+            // update the display
+            for (let i = 0; i < 9; i++) {
+              document.getElementById(i).innerText = boardArr[i];
+            }
+            // check for a winner
+            // TODO
+            document.getElementById("opponentName").innerText = "Playing against: " + doc.data().player2;
+        });
     }
 
     function joinGame() {
@@ -226,6 +246,8 @@
                 player2: nickname
               });
               document.getElementById("opponentName").innerText = "Playing against: " + doc.data().player1;
+              // Set up a listener for the game
+              setListener(gameId);
             } else {
               // doc.data() will be undefined in this case
               console.log("No such document!");
