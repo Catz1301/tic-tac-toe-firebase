@@ -1,4 +1,4 @@
-
+fire
 <!-- READ ME!!!!!!!!!!!!!!!
 
 1. This is a simple tic tac toe game. The game is played on a 3x3 grid.
@@ -43,6 +43,7 @@
       <button id="hostButton" onclick="hostGame()">Start Game</button>
       <button id="joinButton" onclick="joinGame()">Join Game</button>
       <p id="opponentName"></p>
+      <p id="gameId"></p>
     </div>
   </div>
   <!-- <div class="login">
@@ -187,6 +188,7 @@
         player2: "",
         board: boardArr
       });
+      document.getElementById("gameId").innerText = "Game ID: " + pin;
     }
 
     function joinGame() {
