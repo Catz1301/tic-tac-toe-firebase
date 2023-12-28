@@ -27,7 +27,9 @@ body {
     margin: 0 10px;
     width: 100px;
 }
-
+.info {
+    margin: 0 10px;
+}
 .board {
     margin-top: 20px;
     display: grid;
