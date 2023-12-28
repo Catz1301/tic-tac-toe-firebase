@@ -120,27 +120,24 @@
     var showGameControls = true; // will show the start game and join game buttons
     var gameId = "";
     var isMyTurn = false;
+    var isGameReady = false;
+    var isHostTurn = true;
+    var didHostPlay = false;
     console.log(isHost, isMeX, isMeNext);
 
     function squareClicked(element) {
       let id = element.id;
       console.log(id);
-      if (isMyTurn == true && isMeNext == false) {
+      
+      if (!isGameReady) {
+        console.log("Game is not ready.");
+        return;
+      }
+      if (isGameReady && isHostTurn) {
         setSquare(id);
-        isMyTurn = false;
-        isMeNext = true;
+        isHostTurn = false;
+        didHostPlay = true;
       }
-      else {
-        // setSquare(id);
-        isMeNext = false;
-        isMyTurn = true;
-      }
-      // if (boardArr[id] == null) {
-      //   boardArr[id] = isMeX ? 'X' : 'O';
-      //   document.getElementById(id).innerText = isMeX ? 'X' : 'O';
-      // }
-      // for when texting
-      // isMeX = !isMeX;
     }
 
     function setSquare(squareId) {
@@ -216,12 +213,20 @@
     function setListener(gameId) {
       db.collection("games").doc(gameId)
         .onSnapshot((doc) => {
+            if (!isGameReady && doc.data().player1 != "" && doc.data().player2 != "") {
+              isGameReady = true;
+            }
             console.log("Current data: ", doc.data());
             // update the local board
             boardArr = doc.data().board;
             // update the display
             for (let i = 0; i < 9; i++) {
               document.getElementById(i).innerText = boardArr[i];
+            }
+
+            if (didHostPlay == true) {
+              isHostTurn = true;
+              didHostPlay = false;
             }
             // check for a winner
             // TODO
