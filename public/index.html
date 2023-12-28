@@ -114,29 +114,33 @@
     // Required for side-effects
     // import "firebase/firestore";
     var boardArr = Array(9).fill(null);
-    var isHost = true; // for testing purposes only. Set accordingly when in prod.
+    var isHost = undefined; // for testing purposes only. Set accordingly when in prod.
     var isMeX = isHost;
     var isMeNext = isHost;
     var showGameControls = true; // will show the start game and join game buttons
     var gameId = "";
+    var isMyTurn = false;
     console.log(isHost, isMeX, isMeNext);
+
     function squareClicked(element) {
       let id = element.id;
       console.log(id);
-      if (isMeNext) {
+      if (isMyTurn == true && isMeNext == false) {
         setSquare(id);
-        isMeNext = false;
-      }
-      else {
-        setSquare(id);
+        isMyTurn = false;
         isMeNext = true;
       }
-      if (boardArr[id] == null) {
-        boardArr[id] = isMeX ? 'X' : 'O';
-        document.getElementById(id).innerText = isMeX ? 'X' : 'O';
+      else {
+        // setSquare(id);
+        isMeNext = false;
+        isMyTurn = true;
       }
+      // if (boardArr[id] == null) {
+      //   boardArr[id] = isMeX ? 'X' : 'O';
+      //   document.getElementById(id).innerText = isMeX ? 'X' : 'O';
+      // }
       // for when texting
-      isMeX = !isMeX;
+      // isMeX = !isMeX;
     }
 
     function setSquare(squareId) {
@@ -148,6 +152,10 @@
       db.collection("games").doc(gameId).update({
         board: boardArr
       });
+    }
+
+    function updateSquare() {
+      
     }
 
     function getSquare(squareId) {
@@ -193,11 +201,16 @@
         player2: "",
         board: boardArr
       });
+      // document.getElementById("opponentName").innerText = "Playing against: " + doc.data().player2;
       setListener(pin.toString());
       document.getElementById("hostButton").style.display = "none";
       document.getElementById("joinButton").style.display = "none";
       document.getElementById("opponentName").innerText = "Waiting for opponent...";
       document.getElementById("gameId").innerText = "Game ID: " + pin;
+      isHost = true; // for testing purposes only. Set accordingly when in prod.
+      isMeX = isHost;
+      isMeNext = isHost;
+      isMyTurn = true;
     }
 
     function setListener(gameId) {
@@ -212,7 +225,9 @@
             }
             // check for a winner
             // TODO
-            document.getElementById("opponentName").innerText = "Playing against: " + doc.data().player2;
+            if (isHost) {
+              document.getElementById("opponentName").innerText = "Playing against: " + doc.data().player2;
+            }
         });
     }
 
@@ -249,9 +264,17 @@
               db.collection("games").doc(gameId).update({
                 player2: nickname
               });
+              console.dir(doc.data());
+              console.dir(doc);
               document.getElementById("opponentName").innerText = "Playing against: " + doc.data().player1;
+              document.getElementById("hostButton").style.display = "none";
+              document.getElementById("joinButton").style.display = "none";
               // Set up a listener for the game
               setListener(gameId);
+              isHost = false; // for testing purposes only. Set accordingly when in prod.
+              isMeX = isHost;
+              isMeNext = true;
+              isMyTurn = false;
             } else {
               // doc.data() will be undefined in this case
               console.log("No such document!");
