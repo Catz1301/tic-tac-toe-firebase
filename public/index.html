@@ -118,7 +118,7 @@
     var isMeX = isHost;
     var isMeNext = isHost;
     var showGameControls = true; // will show the start game and join game buttons
-
+    var gameId = "";
     console.log(isHost, isMeX, isMeNext);
     function squareClicked(element) {
       let id = element.id;
@@ -145,6 +145,9 @@
         document.getElementById(squareId).innerText = isMeX ? 'X' : 'O';
       }
       // send off to firebase
+      db.collection("games").doc(gameId).update({
+        board: boardArr
+      });
     }
 
     function getSquare(squareId) {
@@ -184,6 +187,7 @@
       // hide the host game button
       // generate random 4 digit pin
       let pin = Math.floor(Math.random() * 9000) + 1000;
+      gameId = pin.toString();
       db.collection("games").doc(pin.toString()).set({
         player1: nickname,
         player2: "",
