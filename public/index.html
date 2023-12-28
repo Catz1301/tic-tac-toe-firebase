@@ -108,8 +108,9 @@
     // Initialize Cloud Firestore and get a reference to the service
     // var db = firebase.firestore();
     // const db = firestore;
-    </script>
-    <script>
+  </script>
+  <script>
+    console.log("Version 0.9");
     // import firebase from "firebase/compat/app";
     // Required for side-effects
     // import "firebase/firestore";
@@ -123,7 +124,22 @@
     var isGameReady = false;
     var isHostTurn = true;
     var didHostPlay = false;
-    console.log(isHost, isMeX, isMeNext);
+    // console.log(isHost, isMeX, isMeNext);
+
+    // returns if it's host's turn or not.
+    function calculateTurnForHost() {
+      let squaresUsed = 0;
+      for (let i = 0; i < boardArr.length; i++) {
+        if (boardArr[i] != "")
+          squaresUsed++;
+      }
+      console.log((squaresUsed % 2))
+      if (squaresUsed % 2 == 1) { 
+        return false; // returns if odd number of squares. Only achievable if host JUST PLAYED.
+      } else {
+        return true; // returns if even number of squares. Only achievable if host HAS NOT PLAYED.
+      }
+    }
 
     function squareClicked(element) {
       let id = element.id;
@@ -132,11 +148,15 @@
       if (!isGameReady) {
         console.log("Game is not ready.");
         return;
-      }
-      if (isGameReady && isHostTurn) {
-        setSquare(id);
-        isHostTurn = false;
-        didHostPlay = true;
+      } else {
+        if (isHost && calculateTurnForHost()) {
+          setSquare(id);
+          // isHostTurn = false;
+          // didHostPlay = true;
+        }
+        else if (!isHost && !calculateTurnForHost()) {
+          setSquare(id);
+        }
       }
     }
 
@@ -180,6 +200,9 @@
       for (let i = 0; i < 9; i++) {
         document.getElementById(i).innerText = "";
       }
+      db.collection("games").doc(gameId).update({
+        board: boardArr
+      });
     }
 
     function hostGame() {
@@ -211,7 +234,8 @@
     }
 
     function setListener(gameId) {
-      db.collection("games").doc(gameId)
+      console.log("here")
+      db.collection("games").doc(`${gameId}`)
         .onSnapshot((doc) => {
             if (!isGameReady && doc.data().player1 != "" && doc.data().player2 != "") {
               isGameReady = true;
@@ -236,6 +260,10 @@
         });
     }
 
+    function resetGame() {
+      resetBoard();
+    }
+
     function joinGame() {
       checkForNickname();
       resetBoard();
@@ -244,7 +272,7 @@
       // display the game id
       // hide the join game button
       // hide the host game button
-      let gameId = prompt("Please enter the game id");
+      gameId = prompt("Please enter the game id");
       if (gameId != null && gameId.length == 4) {
         // check to see if letters are in the game id
         if (gameId.match(/[a-z]/i)) {
