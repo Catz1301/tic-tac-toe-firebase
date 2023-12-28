@@ -130,13 +130,16 @@
     function calculateTurnForHost() {
       let squaresUsed = 0;
       for (let i = 0; i < boardArr.length; i++) {
-        if (boardArr[i] != "")
+        if (boardArr[i] != null)
           squaresUsed++;
       }
       console.log((squaresUsed % 2))
-      if (squaresUsed % 2 == 1) { 
+      if (squaresUsed % 2 == 1) {
+        console.log(squaresUsed % 2 == 1);
+        console.log("host Just Played");
         return false; // returns if odd number of squares. Only achievable if host JUST PLAYED.
       } else {
+        console.log("opponent just played")
         return true; // returns if even number of squares. Only achievable if host HAS NOT PLAYED.
       }
     }
