@@ -206,16 +206,16 @@
 
       for (let line = 0; line < winCheck.length; line++) {
         let xWin = true;
-        let yWin = true;
+        let oWin = true;
         let isNotFinished = false;
         for (let i = 0; i < winCheck[line].length; i++) {
           if (boardArr[winCheck[line][i]] == "X") {
-            yWin = false;
-          } else if (boardArr[winCheck[line][i]] == "Y") {
+            oWin = false;
+          } else if (boardArr[winCheck[line][i]] == "O") {
             xWin = false;
           } else {
             xWin = false;
-            yWin = false;
+            oWin = false;
             isNotFinished = true;
           }
         }
@@ -224,14 +224,14 @@
           if (isHost) {
             confirmText = "The opponent will start first."
           }
-          let playAgain = confirm("Draw! No party won. Do you want to start a new game?" + confirmText);
+          let playAgain = confirm("X has won! Do you want to start a new game? " + confirmText);
           if (playAgain) {
             resetBoard();
             isHost = !isHost;
           }
           break;
-        } else if (yWin) {
-          let playAgain = confirm("Draw! No party won. Do you want to start a new game?" + confirmText);
+        } else if (oWin) {
+          let playAgain = confirm("O has won! Do you want to start a new game? " + confirmText);
           if (playAgain) {
             resetBoard();
             isHost = !isHost;
