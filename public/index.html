@@ -208,7 +208,7 @@
         let xWin = true;
         let yWin = true;
         let isNotFinished = false;
-        for (let i = 0; i < winCheck[line]; i++) {
+        for (let i = 0; i < winCheck[line].length; i++) {
           if (boardArr[winCheck[line][i]] == "X") {
             yWin = false;
           } else if (boardArr[winCheck[line][i]] == "Y") {
@@ -239,6 +239,7 @@
           break;
         } else {
           console.log("Not yet conclusive.")
+
         }
       }
 
