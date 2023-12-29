@@ -110,7 +110,7 @@
     // const db = firestore;
   </script>
   <script>
-    console.log("Version 0.9");
+    console.log("Version 1.0");
     // import firebase from "firebase/compat/app";
     // Required for side-effects
     // import "firebase/firestore";
@@ -228,6 +228,7 @@
           if (playAgain) {
             resetBoard();
             isHost = !isHost;
+            isMeX = !isMeX;
           }
           break;
         } else if (oWin) {
@@ -235,6 +236,7 @@
           if (playAgain) {
             resetBoard();
             isHost = !isHost;
+            isMeX = !isMeX;
           }
           break;
         } else {
@@ -250,6 +252,7 @@
         if (playAgain) {
           resetBoard();
           isHost = !isHost;
+          isMeX = !isMeX;
         }
       }
     }
