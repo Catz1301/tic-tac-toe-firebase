@@ -124,6 +124,19 @@
     var isGameReady = false;
     var isHostTurn = true;
     var didHostPlay = false;
+    var moves = [];
+    var winCheck = [
+      [0,1,2],
+      [3,4,5],
+      [6,7,8],
+
+      [0,3,6],
+      [1,4,7],
+      [2,5,8],
+
+      [0,4,8],
+      [2,4,6]
+    ]
     // console.log(isHost, isMeX, isMeNext);
 
     // returns if it's host's turn or not.
@@ -174,8 +187,53 @@
       });
     }
 
-    function updateSquare() {
-      
+    function checkEndOfGameStatus() {
+      let squaresUsed = 0;
+      for (let i = 0; i < boardArr.length; i++) {
+        if (boardArr[i] != null) {
+          squaresUsed++;
+        }
+      }
+      // CONDITIONAL TIME!!!!!!!
+      for (let line = 0; line < winCheck.length; line++) {
+        let xWin = true;
+        let yWin = true;
+        for (let i = 0; i < winCheck[line]; i++) {
+          if (boardArr[winCheck[line][i]] == "X") {
+            yWin = false;
+          } else if (boardArr[winCheck[line][i]] == "Y") {
+            xWin = false;
+          } else {
+            xWin = false;
+            yWin = false;
+          }
+        }
+        if (xWin) {
+          let playAgain = confirm("Draw! No party won.");
+          if (playAgain) {
+            resetBoard();
+            isHost = !isHost;
+          }
+          break;
+        } else if (yWin) {
+          let playAgain = confirm("Draw! No party won.");
+          if (playAgain) {
+            resetBoard();
+            isHost = !isHost;
+          }
+          break
+        }
+      }
+
+
+
+      if (squaresUsed == 9) {
+        let playAgain = confirm("Draw! No party won.");
+        if (playAgain) {
+          resetBoard();
+          isHost = !isHost;
+        }
+      }
     }
 
     function getSquare(squareId) {
@@ -246,27 +304,27 @@
       console.log("here")
       db.collection("games").doc(`${gameId}`)
         .onSnapshot((doc) => {
-            if (!isGameReady && doc.data().player1 != "" && doc.data().player2 != "") {
-              isGameReady = true;
-            }
-            console.log("Current data: ", doc.data());
-            // update the local board
-            boardArr = doc.data().board;
-            // update the display
-            for (let i = 0; i < 9; i++) {
-              document.getElementById(i).innerText = boardArr[i];
-            }
+          if (!isGameReady && doc.data().player1 != "" && doc.data().player2 != "") {
+            isGameReady = true;
+          }
+          console.log("Current data: ", doc.data());
+          // update the local board
+          boardArr = doc.data().board;
+          // update the display
+          for (let i = 0; i < 9; i++) {
+            document.getElementById(i).innerText = boardArr[i];
+          }
 
-            if (didHostPlay == true) {
-              isHostTurn = true;
-              didHostPlay = false;
-            }
-            // check for a winner
-            // TODO
-            if (isHost) {
-              document.getElementById("opponentName").innerText = "Playing against: " + doc.data().player2;
-            }
-        });
+          if (didHostPlay == true) {
+            isHostTurn = true;
+            didHostPlay = false;
+          }
+          // check for a winner
+          checkEndOfGameStatus();
+          if (isHost) {
+            document.getElementById("opponentName").innerText = "Playing against: " + doc.data().player2;
+          }
+      });
     }
 
     function resetGame() {
