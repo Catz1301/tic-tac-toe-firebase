@@ -14,7 +14,7 @@
 
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="index.css"/>
@@ -26,18 +26,18 @@
 <body>
   <div class="boardWrapper">
     <div class="board">
-      <div class="cell" id="0" onclick="squareClicked(this)"></div>
-      <div class="cell" id="1" onclick="squareClicked(this)"></div>
-      <div class="cell" id="2" onclick="squareClicked(this)"></div>
-      <div class="cell" id="3" onclick="squareClicked(this)"></div>
-      <div class="cell" id="4" onclick="squareClicked(this)"></div>
-      <div class="cell" id="5" onclick="squareClicked(this)"></div>
-      <div class="cell" id="6" onclick="squareClicked(this)"></div>
-      <div class="cell" id="7" onclick="squareClicked(this)"></div>
-      <div class="cell" id="8" onclick="squareClicked(this)"></div>
+      <div class="cell upperLeft" id="0" onclick="squareClicked(this)"></div>
+      <div class="cell upperCenter" id="1" onclick="squareClicked(this)"></div>
+      <div class="cell upperRight" id="2" onclick="squareClicked(this)"></div>
+      <div class="cell middleLeft" id="3" onclick="squareClicked(this)"></div>
+      <div class="cell middleCenter" id="4" onclick="squareClicked(this)"></div>
+      <div class="cell middleRight" id="5" onclick="squareClicked(this)"></div>
+      <div class="cell bottomLeft" id="6" onclick="squareClicked(this)"></div>
+      <div class="cell bottomCenter" id="7" onclick="squareClicked(this)"></div>
+      <div class="cell bottomRight" id="8" onclick="squareClicked(this)"></div>
     </div>
   </div>
-  <div class="gameControlsWrapper">
+  <!-- <div class="gameControlsWrapper"> -->
     <div id="gamecontrols">
       <button id="hostButton" onclick="hostGame()">Start Game</button>
       <button id="joinButton" onclick="joinGame()">Join Game</button>
@@ -45,7 +45,7 @@
       <p class="info" id="opponentName"></p>
       <p class="info" id="gameId"></p>
     </div>
-  </div>
+  <!-- </div> -->
   <!-- <div class="login">
     <div class="login-box">
       <div class="login-title">Login</div>
@@ -125,6 +125,7 @@
     var isHostTurn = true;
     var didHostPlay = false;
     var moves = [];
+    var iconPlaced = Array(9).fill(false);
     var winCheck = [
       [0,1,2],
       [3,4,5],
@@ -179,12 +180,33 @@
     function setSquare(squareId) {
       if (boardArr[squareId] == null) {
         boardArr[squareId] = isMeX ? 'X' : 'O';
-        document.getElementById(squareId).innerText = isMeX ? 'X' : 'O';
+        // document.getElementById(squareId).innerText = isMeX ? 'X' : 'O';
       }
       // send off to firebase
       db.collection("games").doc(gameId).update({
         board: boardArr
       });
+    }
+
+    function drawBoard() {
+      for (let i = 0; i < boardArr.length; i++) {
+        if (boardArr[i] != null && iconPlaced[i] == false ) {
+          let squareEl = document.getElementById(i.toString());
+          let imgEl = document.createElement("img");
+          if (boardArr[i] == "X") {
+            imgEl.src = "img/x.svg";
+            imgEl.style = "width: math(100% - 10px); height: " + squareEl.width - 10;
+            squareEl.appendChild(imgEl);
+            iconPlaced[i] = true;
+          }
+          if (boardArr[i] == "O") {
+            imgEl.src = "img/o.svg";
+            imgEl.style = "width: math(100% - 10px); height: " + squareEl.width - 10;
+            squareEl.appendChild(imgEl);
+            iconPlaced[i] = true;
+          }
+        }
+      }
     }
 
     function checkEndOfGameStatus() {
@@ -288,7 +310,7 @@
             board: boardArr
           });
         } catch (e) {
-          console.error(r);
+          console.error(e);
         }
       }
     }
@@ -341,6 +363,7 @@
             didHostPlay = false;
           }
           // check for a winner
+          drawBoard();
           checkEndOfGameStatus();
           // TODO
           if (isHost) {
