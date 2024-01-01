@@ -192,16 +192,21 @@
       for (let i = 0; i < boardArr.length; i++) {
         if (boardArr[i] != null && iconPlaced[i] == false ) {
           let squareEl = document.getElementById(i.toString());
+          console.dir(squareEl);
+          console.debug({squareEl_Width: squareEl.width, squareEl_Style: squareEl.style})
           let imgEl = document.createElement("img");
           if (boardArr[i] == "X") {
             imgEl.src = "img/x.svg";
-            imgEl.style = "width: math(100% - 10px); height: " + squareEl.width - 10;
+            imgEl.style = `width: ${squareEl.clientWidth - 10}; height: ${squareEl.clientWidth - 10};`;
+            // imgEl.style = "width: " + squareEl.clientWidth + "; height: " + squareEl.clientWidth - 10 + ";";
             squareEl.appendChild(imgEl);
             iconPlaced[i] = true;
           }
           if (boardArr[i] == "O") {
             imgEl.src = "img/o.svg";
-            imgEl.style = "width: math(100% - 10px); height: " + squareEl.width - 10;
+            imgEl.style.width = squareEl.clientWidth - 10;
+            imgEl.style.height = squareEl.clientWidth - 10;
+            // imgEl.style = "width: math(100% - 10px); height: " + squareEl.clientWidth - 10;
             squareEl.appendChild(imgEl);
             iconPlaced[i] = true;
           }
@@ -353,10 +358,10 @@
           console.log("Current data: ", doc.data());
           // update the local board
           boardArr = doc.data().board;
-          // update the display
-          for (let i = 0; i < 9; i++) {
+          // update the display - Do in drawBoard();
+          /* for (let i = 0; i < 9; i++) {
             document.getElementById(i).innerText = boardArr[i];
-          }
+          } */
 
           if (didHostPlay == true) {
             isHostTurn = true;

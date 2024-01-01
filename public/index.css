@@ -116,7 +116,7 @@ p {
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     width: 80%;
-    height: 80%;
+    height: ;
     ;
     /* margin-top: 20%; */
     /* max-width: 400px; */
@@ -133,6 +133,12 @@ p {
     vertical-align: middle;
     font-size: calc(((50vh - 20px) / 3) - 40px);
     min-height: calc((50vh - 20px) / 3);
+    display: grid;
+    /* max-height: calc((50vh - 20px) / 3); */
+}
+
+.icon {
+    margin: 10px;
 }
 
 #gamecontrols {
