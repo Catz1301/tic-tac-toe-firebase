@@ -85,16 +85,18 @@ function drawBoard() {
       let imgEl = document.createElement("img");
       if (boardArr[i] == "X") {
       imgEl.src = "img/x.svg";
-      imgEl.style = `width: ${squareEl.clientWidth - 10}; height: ${squareEl.clientWidth - 10};`;
+      imgEl.classList.add("icon");
+      //imgEl.style = `width: ${squareEl.clientWidth - 10}; height: ${squareEl.clientWidth - 10};`;
       // imgEl.style = "width: " + squareEl.clientWidth + "; height: " + squareEl.clientWidth - 10 + ";";
       squareEl.appendChild(imgEl);
       iconPlaced[i] = true;
       }
       if (boardArr[i] == "O") {
       imgEl.src = "img/o.svg";
-      imgEl.style.width = squareEl.clientWidth - 10;
-      imgEl.style.height = squareEl.clientWidth - 10;
+      //imgEl.style.width = squareEl.clientWidth - 10;
+      //imgEl.style.height = squareEl.clientWidth - 10;
       // imgEl.style = "width: math(100% - 10px); height: " + squareEl.clientWidth - 10;
+      imgEl.classList.add("icon");
       squareEl.appendChild(imgEl);
       iconPlaced[i] = true;
       }
