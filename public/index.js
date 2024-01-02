@@ -84,7 +84,7 @@ function drawBoard() {
       console.debug({squareEl_Width: squareEl.width, squareEl_Style: squareEl.style})
       let imgEl = document.createElement("img");
       if (boardArr[i] == "X") {
-      imgEl.src = "img/x.svg";
+      imgEl.src = "img/x.png";
       imgEl.classList.add("icon");
       //imgEl.style = `width: ${squareEl.clientWidth - 10}; height: ${squareEl.clientWidth - 10};`;
       // imgEl.style = "width: " + squareEl.clientWidth + "; height: " + squareEl.clientWidth - 10 + ";";
@@ -92,7 +92,7 @@ function drawBoard() {
       iconPlaced[i] = true;
       }
       if (boardArr[i] == "O") {
-      imgEl.src = "img/o.svg";
+      imgEl.src = "img/o.png";
       //imgEl.style.width = squareEl.clientWidth - 10;
       //imgEl.style.height = squareEl.clientWidth - 10;
       // imgEl.style = "width: math(100% - 10px); height: " + squareEl.clientWidth - 10;

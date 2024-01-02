@@ -116,7 +116,7 @@ p {
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     width: 80%;
-    height: ;
+    /* height: 80%; */
     ;
     /* margin-top: 20%; */
     /* max-width: 400px; */
@@ -134,14 +134,18 @@ p {
     font-size: calc(((50vh - 20px) / 3) - 40px);
     min-height: calc((50vh - 20px) / 3);
     display: grid;
+    justify-items: center;
+    align-items: center;
+    align-content: center;
     /* max-height: calc((50vh - 20px) / 3); */
 }
 
 .icon {
-    padding-left: 2px;
-    padding-right: 2px;
-    margin-left: 2px;
-    margin-right: 2px;
+    /* padding-left: 2px; */
+    /* padding-right: 2px; */
+    /* margin-left: 2px; */
+    /* margin-right: 2px; */
+    width: 90%;
 }
 
 #gamecontrols {
