@@ -1,4 +1,4 @@
-console.log("Version 1.0.1");
+console.log("Version 1.0.2");
 // import firebase from "firebase/compat/app";
 // Required for side-effects
 // import "firebase/firestore";
