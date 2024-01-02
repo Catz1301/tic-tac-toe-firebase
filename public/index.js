@@ -14,163 +14,180 @@ var isHostTurn = true;
 var didHostPlay = false;
 var moves = [];
 var iconPlaced = Array(9).fill(false);
+var listener = undefined;
 var winCheck = [
-  [0,1,2],
-  [3,4,5],
-  [6,7,8],
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
 
-  [0,3,6],
-  [1,4,7],
-  [2,5,8],
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
 
-  [0,4,8],
-  [2,4,6]
+  [0, 4, 8],
+  [2, 4, 6]
 ]
+var sessionEnded = false;
 // console.log(isHost, isMeX, isMeNext);
 
 // returns if it's host's turn or not.
 function calculateTurnForHost() {
   let squaresUsed = 0;
   for (let i = 0; i < boardArr.length; i++) {
-  if (boardArr[i] != null)
+    if (boardArr[i] != null)
       squaresUsed++;
   }
   console.log((squaresUsed % 2))
   if (squaresUsed % 2 == 1) {
-  console.log(squaresUsed % 2 == 1);
-  console.log("host Just Played");
-  return false; // returns if odd number of squares. Only achievable if host JUST PLAYED.
+    console.log(squaresUsed % 2 == 1);
+    console.log("host Just Played");
+    return false; // returns if odd number of squares. Only achievable if host JUST PLAYED.
   } else {
-  console.log("opponent just played")
-  return true; // returns if even number of squares. Only achievable if host HAS NOT PLAYED.
+    console.log("opponent just played")
+    return true; // returns if even number of squares. Only achievable if host HAS NOT PLAYED.
   }
 }
 
 function squareClicked(element) {
+  if (sessionEnded == true)
+    return;
+
   let id = element.id;
   console.log(id);
-  
+
   if (!isGameReady) {
-  console.log("Game is not ready.");
-  return;
+    console.log("Game is not ready.");
+    return;
   } else {
-  if (isHost && calculateTurnForHost()) {
+    if (isHost && calculateTurnForHost()) {
       setSquare(id);
       // isHostTurn = false;
       // didHostPlay = true;
-  }
-  else if (!isHost && !calculateTurnForHost()) {
+    } else if (!isHost && !calculateTurnForHost()) {
       setSquare(id);
-  }
+    }
   }
 }
 
 function setSquare(squareId) {
   if (boardArr[squareId] == null) {
-  boardArr[squareId] = isMeX ? 'X' : 'O';
-  // document.getElementById(squareId).innerText = isMeX ? 'X' : 'O';
+    boardArr[squareId] = isMeX ? 'X' : 'O';
+    // document.getElementById(squareId).innerText = isMeX ? 'X' : 'O';
   }
   // send off to firebase
   db.collection("games").doc(gameId).update({
-  board: boardArr
+    board: boardArr
   });
 }
 
 function drawBoard() {
   for (let i = 0; i < boardArr.length; i++) {
-  if (boardArr[i] != null && iconPlaced[i] == false ) {
+    if (boardArr[i] != null && iconPlaced[i] == false) {
       let squareEl = document.getElementById(i.toString());
       console.dir(squareEl);
-      console.debug({squareEl_Width: squareEl.width, squareEl_Style: squareEl.style})
+      console.debug({
+        squareEl_Width: squareEl.width,
+        squareEl_Style: squareEl.style
+      })
       let imgEl = document.createElement("img");
       if (boardArr[i] == "X") {
-      imgEl.src = "img/x.png";
-      imgEl.classList.add("icon");
-      //imgEl.style = `width: ${squareEl.clientWidth - 10}; height: ${squareEl.clientWidth - 10};`;
-      // imgEl.style = "width: " + squareEl.clientWidth + "; height: " + squareEl.clientWidth - 10 + ";";
-      squareEl.appendChild(imgEl);
-      iconPlaced[i] = true;
+        imgEl.src = "img/x.png";
+        imgEl.classList.add("icon");
+        //imgEl.style = `width: ${squareEl.clientWidth - 10}; height: ${squareEl.clientWidth - 10};`;
+        // imgEl.style = "width: " + squareEl.clientWidth + "; height: " + squareEl.clientWidth - 10 + ";";
+        squareEl.appendChild(imgEl);
+        iconPlaced[i] = true;
       }
       if (boardArr[i] == "O") {
-      imgEl.src = "img/o.png";
-      //imgEl.style.width = squareEl.clientWidth - 10;
-      //imgEl.style.height = squareEl.clientWidth - 10;
-      // imgEl.style = "width: math(100% - 10px); height: " + squareEl.clientWidth - 10;
-      imgEl.classList.add("icon");
-      squareEl.appendChild(imgEl);
-      iconPlaced[i] = true;
+        imgEl.src = "img/o.png";
+        //imgEl.style.width = squareEl.clientWidth - 10;
+        //imgEl.style.height = squareEl.clientWidth - 10;
+        // imgEl.style = "width: math(100% - 10px); height: " + squareEl.clientWidth - 10;
+        imgEl.classList.add("icon");
+        squareEl.appendChild(imgEl);
+        iconPlaced[i] = true;
       }
-  }
+    }
   }
 }
 
 function checkEndOfGameStatus() {
+  drawBoard();
   if (!isGameReady) {
-  return;
+    return;
   }
   let squaresUsed = 0;
   for (let i = 0; i < boardArr.length; i++) {
-  if (boardArr[i] != null) {
+    if (boardArr[i] != null) {
       squaresUsed++;
-  }
+    }
   }
   // CONDITIONAL TIME!!!!!!!
   let confirmText;
   if (isHost)
-  confirmText = "The opponent will start first.";
+    confirmText = "The opponent will start first.";
   else
-  confirmText = "You will start first."
+    confirmText = "You will start first."
 
   for (let line = 0; line < winCheck.length; line++) {
-  let xWin = true;
-  let oWin = true;
-  let isNotFinished = false;
-  for (let i = 0; i < winCheck[line].length; i++) {
+    let xWin = true;
+    let oWin = true;
+    let isNotFinished = false;
+    for (let i = 0; i < winCheck[line].length; i++) {
       if (boardArr[winCheck[line][i]] == "X") {
-      oWin = false;
+        oWin = false;
       } else if (boardArr[winCheck[line][i]] == "O") {
-      xWin = false;
+        xWin = false;
       } else {
-      xWin = false;
-      oWin = false;
-      isNotFinished = true;
+        xWin = false;
+        oWin = false;
+        isNotFinished = true;
       }
-  }
-  if (xWin) {
+    }
+    if (xWin) {
 
       if (isHost) {
-      confirmText = "The opponent will start first."
+        confirmText = "The opponent will start first."
       }
       let playAgain = confirm("X has won! Do you want to start a new game? " + confirmText);
       if (playAgain) {
-      resetBoard();
-      isHost = !isHost;
-      isMeX = !isMeX;
+        resetBoard();
+        isHost = !isHost;
+        isMeX = !isMeX;
+      } else {
+        sessionEnded = true;
       }
       break;
-  } else if (oWin) {
+    } else if (oWin) {
       let playAgain = confirm("O has won! Do you want to start a new game? " + confirmText);
       if (playAgain) {
-      resetBoard();
-      isHost = !isHost;
-      isMeX = !isMeX;
+        resetBoard();
+        isHost = !isHost;
+        isMeX = !isMeX;
+      } else {
+        sessionEnded = true;
       }
       break;
-  } else {
+    } else {
       console.log("Not yet conclusive.")
-
+    }
+    if (sessionEnded == true) {
+      db.collection("games").doc(gameId).delete();
+      if (listener != undefined)
+        listener();
+      document.getElementById("hostButton").style.display = "";
+      document.getElementById("joinButton").style.display = "";
+      listener = undefined;
+    }
   }
-  }
-
-
 
   if (squaresUsed == 9) {
-  let playAgain = confirm("Draw! No party won. Do you want to start a new game?" + confirmText);
-  if (playAgain) {
+    let playAgain = confirm("Draw! No party won. Do you want to start a new game?" + confirmText);
+    if (playAgain) {
       resetBoard();
       isHost = !isHost;
       isMeX = !isMeX;
-  }
+    }
   }
 }
 
@@ -182,13 +199,13 @@ function getSquare(squareId) {
 function checkForNickname() {
   var nickname = localStorage.getItem("nickname");
   if (nickname == null) {
-  nickname = prompt("Please enter a nickname");
-  if (nickname == "") {
+    nickname = prompt("Please enter a nickname");
+    if (nickname == "") {
       alert("Your nickname cannot be empty.");
       checkForNickname();
-  } else {
+    } else {
       localStorage.setItem("nickname", nickname);
-  }
+    }
   }
   window.nickname = nickname;
   document.getElementById("nickname").innerText = "Nickname: " + nickname;
@@ -197,16 +214,16 @@ function checkForNickname() {
 function resetBoard() {
   boardArr = Array(9).fill(null);
   for (let i = 0; i < 9; i++) {
-  document.getElementById(i).innerText = "";
+    document.getElementById(i).innerText = "";
   }
   if (gameId != "") {
-  try {
+    try {
       db.collection("games").doc(gameId).update({
-      board: boardArr
+        board: boardArr
       });
-  } catch (e) {
+    } catch (e) {
       console.error(e);
-  }
+    }
   }
 }
 
@@ -222,12 +239,13 @@ function hostGame() {
   let pin = Math.floor(Math.random() * 9000) + 1000;
   gameId = pin.toString();
   db.collection("games").doc(pin.toString()).set({
-  player1: nickname,
-  player2: "",
-  board: boardArr
+    player1: nickname,
+    player2: "",
+    board: boardArr
   });
   // document.getElementById("opponentName").innerText = "Playing against: " + doc.data().player2;
   setListener(pin.toString());
+  sessionEnded = false;
   document.getElementById("hostButton").style.display = "none";
   document.getElementById("joinButton").style.display = "none";
   document.getElementById("opponentName").innerText = "Waiting for opponent...";
@@ -240,10 +258,10 @@ function hostGame() {
 
 function setListener(gameId) {
   console.log("here")
-  db.collection("games").doc(`${gameId}`)
-  .onSnapshot((doc) => {
+  listener = db.collection("games").doc(`${gameId}`)
+    .onSnapshot((doc) => {
       if (!isGameReady && doc.data().player1 != "" && doc.data().player2 != "") {
-      isGameReady = true;
+        isGameReady = true;
       }
       console.log("Current data: ", doc.data());
       // update the local board
@@ -254,17 +272,17 @@ function setListener(gameId) {
       } */
 
       if (didHostPlay == true) {
-      isHostTurn = true;
-      didHostPlay = false;
+        isHostTurn = true;
+        didHostPlay = false;
       }
       // check for a winner
-      drawBoard();
+      // drawBoard();
       checkEndOfGameStatus();
       // TODO
       if (isHost) {
-      document.getElementById("opponentName").innerText = "Playing against: " + doc.data().player2;
+        document.getElementById("opponentName").innerText = "Playing against: " + doc.data().player2;
       }
-  });
+    });
 }
 
 function resetGame() {
@@ -281,12 +299,11 @@ function joinGame() {
   // hide the host game button
   gameId = prompt("Please enter the game id");
   if (gameId != null && gameId.length == 4) {
-  // check to see if letters are in the game id
-  if (gameId.match(/[a-z]/i)) {
+    // check to see if letters are in the game id
+    if (gameId.match(/[a-z]/i)) {
       alert("Please enter a valid game id");
       joinGame(); // prolly a mem leak here. idk how to fix it
-  }
-  else {
+    } else {
       // the goal is to check for an existing document with the gameid. Then make a snapshot listener for the specific document.
       // always update the local board. only update the firebase board when the local board changes.
       /* db.collection("games").get().then((querySnapshot) => {
@@ -298,11 +315,11 @@ function joinGame() {
       var docRef = db.collection("games").doc(gameId);
 
       docRef.get().then((doc) => {
-      if (doc.exists) {
+        if (doc.exists) {
           console.log("Document data:", doc.data());
           alert("Joining Game")
           db.collection("games").doc(gameId).update({
-          player2: nickname
+            player2: nickname
           });
           console.dir(doc.data());
           console.dir(doc);
@@ -315,17 +332,18 @@ function joinGame() {
           isMeX = isHost;
           isMeNext = true;
           isMyTurn = false;
-      } else {
+          sessionEnded = false;
+        } else {
           // doc.data() will be undefined in this case
           console.log("No such document!");
           alert("No active game with that id");
-      }
+        }
       }).catch((error) => {
-      console.error("Error getting document:", error);
-      alert("There was an error retrieving the game. Check the console for more details.")
+        console.error("Error getting document:", error);
+        alert("There was an error retrieving the game. Check the console for more details.")
       });
 
+    }
   }
-  }
-  
+
 }
