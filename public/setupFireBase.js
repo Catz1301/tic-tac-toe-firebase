@@ -1,11 +1,12 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js'
+// import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js'
 
 // If you enabled Analytics in your project, add the Firebase SDK for Google Analytics
-import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js'
+// import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js'
 
 // Add Firebase products that you want to use
-import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js'
-import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js'
+// import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js'
+// import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js'
+// import { getMessaging } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js'
 // import firebase from "firebase/compat/app";
 // // Required for side-effects
 // import "firebase/firestore";
@@ -33,9 +34,11 @@ const app = firebase.initializeApp(firebaseConfig);
 // const analytics = getAnalytics(app);
 // Initialize Cloud Firestore and get a reference to the service
 const db = firebase.firestore();
+// const messaging = firebase.messaging();
 window.app = app;
 // window.analytics = analytics;
 window.db = db;
+// window.messaging = messaging;
 // firebase.initializeApp(firebaseConfig);
 
 

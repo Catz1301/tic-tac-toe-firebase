@@ -1,0 +1,44 @@
+<!-- READ ME!!!!!!!!!!!!!!!
+
+2. The game is played by two players. One player is X and the other player is O. Eventually pull first letter of nickname and use that as the player's symbol, unless they're already both used.
+3. This game will be played and data processed on client and firebase.
+4. In order to play the game, you must log in, and you will be shown two boxes. One box is to start a game, the other is to join a game.
+5. When starting or joining a game, you will need a 4 digit pin. This pin simply acts as a game id.
+6. When you start a game, you will be given a pin. You can give this pin to your friend so they can join your game.
+7. When you join a game, you will need a pin. This pin is the pin that your friend gave you.
+8. When you join a game, there will be 2 players associated with the game, and no more people can join. At that time, the game will start.
+9. When the game ends, the game will be deleted from firebase. there will be an option to play again with the same person, without having swap pins again.
+-->
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/public/index.css"/>
+  <link rel="stylesheet" href="dotsandboxes.css"/>
+  <style>
+    /* Make the board take up 80 percent of the page, starting from the top */
+    
+  </style>
+</head>
+<body>
+  <main>
+  </main>
+  <div id="gamecontrols">
+    <button id="hostButton" onclick="hostGame()">Start Game</button>
+    <button id="joinButton" onclick="joinGame()">Join Game</button>
+    <p class="info" id="nickname"></p>
+    <p class="info" id="opponentName"></p>
+    <p class="info" id="gameId"></p>
+  </div>
+  <!-- Insert this script at the bottom of the HTML, but before you use any Firebase services -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="/public/setupFireBase.js" type="module"></script>
+  <script src="/public/index.js"></script>
+  <script src="/lib/p5.js"></script>
+  <script src="dotsandboxes.js"></script>
+</body>
+</html>
