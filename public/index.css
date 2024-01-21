@@ -171,7 +171,7 @@ p {
     border-radius: 10px;
     padding: 20px;
     text-align: center;
-    margin: 20px;
+    /* margin: 20px; */
     color: white;
   }
 
