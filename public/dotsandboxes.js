@@ -36,11 +36,11 @@ function setup() {
 
 // event handlers
 function mouseMoved(e) {
-  console.log("mouse pressed");
-  console.log(e.x, e.y);
-  boxes.forEach(box => {
-    console.log(box);
-  });
+  // console.log("mouse pressed");
+  // console.log(e.x, e.y);
+  // boxes.forEach(box => {
+  //   console.log(box);
+  // });
   push();
   stroke(0, 255, 0);
   fill(255, 0, 255);
@@ -49,8 +49,8 @@ function mouseMoved(e) {
 }
 
 function touchMoved(e) {
-  console.log("touch pressed");
-  console.log(e.x, e.y);
+  // console.log("touch pressed");
+  // console.log(e.x, e.y);
   // boxes.forEach(box => {
   //   console.log(box);
   // });
@@ -92,6 +92,7 @@ function setupBoard() {
   }
   if (debugging) {
     debug_setBoxOwners();
+    debug_drawCanvasBorder();
   }
 }
 
@@ -132,6 +133,16 @@ function debug_setBoxOwners() {
   }
 }
 
+function debug_drawCanvasBorder() {
+  stroke(0, 255, 0);
+  strokeWeight(1);
+  line(0, 0, width, 0);
+  line(0, 0, 0, height);
+  line(width, 0, width, height);
+  line(0, height, width, height);
+
+}
+
 function debug_setupOwners() {
   p1 = new Owner("Bob", color(255, 165, 0));
   p2 = new Owner("Elliot", color(0, 127, 255));
@@ -155,24 +166,51 @@ class Line {
       // if (preview) {
         stroke(225);
         strokeWeight(2);
+        var X1 = this.x1 + (dotDiameter + padding)
+        var X2 = this.x2 + (dotDiameter + padding)
+        var Y1 = this.y1 + (dotDiameter + padding)
+        var Y2 = this.y2 + (dotDiameter + padding)
         if (this.horizonal) {
-          if (mouseY > this.x1 + tolerance && mouseY < this.x2 - tolerance && (
-            mouseX > this.y1 && mouseX < this.y2
+          // if (mousePressed && mouseX > this.x1 + tolerance && mouseY < this.x2 - tolerance && this.horizonal == true)
+          if (debugging) {
+            stroke(0, 255, 0);
+            line(X1 + tolerance, Y1, X1 + tolerance, Y1);
+            line(X2 - tolerance, Y1, X2 - tolerance, Y2);
+            // line(this.y1 - tolerance, this.x1, this.y2 + tolerance, this.x2);
+          }
+          if (mouseX > X1 + tolerance && mouseX < X2 - tolerance && (
+            mouseY > Y1 - tolerance && mouseY < Y2 + tolerance
           )) {
             line(this.x1, this.y1, this.x2, this.y2);
+            if (mouseIsPressed || touchStarted.length > 0) {
+              this.owner = p1; // determine player from getPlayer() function. getPlayer() will return the player object from the db.
+              this.show = true;
+            }
             console.log("hey")
           }
         } else {
-          if (mouseX > this.y1 + tolerance && mouseX < this.y2 - tolerance && (
-            mouseY > this.x1 && mouseY < this.x2
+          if (debugging) {
+            stroke(0, 255, 0);
+            line(X1, Y1 + tolerance, X1, Y2 + tolerance);
+            line(X2, Y1 - tolerance, X2, Y2 + tolerance);
+            // line(this.y1 - tolerance, this.x1, this.y2 + tolerance, this.x2);
+          }
+          // line (this.y1)
+          if (mouseY > Y1 + tolerance && mouseY < Y2 - tolerance && (
+            mouseX > X1 - tolerance && mouseX < X2 + tolerance
           )) {
             line(this.x1, this.y1, this.x2, this.y2);
+            if (mouseIsPressed || touchStarted.length > 0) {
+              this.owner = p1;
+              this.show = true;
+            }
             console.log("yo");
           }
         }
         // console.log(mouseX, mouseY)
         stroke(0, 0, 255, 150);
         strokeWeight((tolerance*2) + 1);
+        
         // line(this.x1, this.y1, this.x2, this.y2); // uncomment to see the tolerance
         // console.log("no Owner");
       // }
