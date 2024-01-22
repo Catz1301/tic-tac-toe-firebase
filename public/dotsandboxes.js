@@ -1,6 +1,6 @@
 console.log("Version 0.0.1");
 
-var isMobile = window.matchMedia("max-width: 600").matches;
+var isMobile = true;
 var boardWidth, boardHeight;
 const gridSize = 4 + 1; // add one more to account for the borders
 var dotSpacing = -1;
@@ -14,6 +14,7 @@ var lines = [];
 var tolerance = 25; // the amount of pixels the mouse can be off from the line and still be considered on the line
 var debugging = true;
 function setup() {
+  isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   if (isMobile)
     createCanvas(windowWidth, windowWidth);
   else
@@ -34,15 +35,37 @@ function setup() {
 }
 
 // event handlers
-function mousePressed(e) {
+function mouseMoved(e) {
   console.log("mouse pressed");
   console.log(e.x, e.y);
   boxes.forEach(box => {
     console.log(box);
   });
+  push();
+  stroke(0, 255, 0);
+  fill(255, 0, 255);
+  circle(mouseX, mouseY, 10);
+  pop();
 }
 
+function touchMoved(e) {
+  console.log("touch pressed");
+  console.log(e.x, e.y);
+  // boxes.forEach(box => {
+  //   console.log(box);
+  // });
+  push();
+  stroke(0, 255, 0);
+  fill(255, 0, 255);
+  circle(mouseX, mouseY, 10);
+  pop();
+  return false;
+}
 
+function touchStarted() {
+  console.log("touch started");
+  return false;
+}
 
 function draw() {
   // push();
