@@ -238,7 +238,7 @@ function hostGame() {
   // generate random 4 digit pin
   let pin = Math.floor(Math.random() * 9000) + 1000;
   gameId = pin.toString();
-  db.collection("games").doc(pin.toString()).set({
+  db.collection("game/tictactoe/games").doc(pin.toString()).set({
     player1: nickname,
     player2: "",
     board: boardArr
@@ -258,7 +258,7 @@ function hostGame() {
 
 function setListener(gameId) {
   console.log("here")
-  listener = db.collection("games").doc(`${gameId}`)
+  listener = db.collection("game/tictactoe/games").doc(`${gameId}`)
     .onSnapshot((doc) => {
       if (!isGameReady && doc.data().player1 != "" && doc.data().player2 != "") {
         isGameReady = true;
@@ -312,7 +312,7 @@ function joinGame() {
           console.log(`${doc.id} => ${doc.data()}`);
       });
       }); */
-      var docRef = db.collection("games").doc(gameId);
+      var docRef = db.collection("game/tictactoe/games").doc(gameId);
 
       docRef.get().then((doc) => {
         if (doc.exists) {
