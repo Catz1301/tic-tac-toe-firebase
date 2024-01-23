@@ -75,7 +75,7 @@ function setSquare(squareId) {
     // document.getElementById(squareId).innerText = isMeX ? 'X' : 'O';
   }
   // send off to firebase
-  db.collection("games").doc(gameId).update({
+  db.collection("game/tictactoe/games").doc(gameId).update({
     board: boardArr
   });
 }
@@ -172,7 +172,7 @@ function checkEndOfGameStatus() {
       console.log("Not yet conclusive.")
     }
     if (sessionEnded == true) {
-      db.collection("games").doc(gameId).delete();
+      db.collection("game/tictactoe/games").doc(gameId).delete();
       if (listener != undefined)
         listener();
       document.getElementById("hostButton").style.display = "";
@@ -318,7 +318,7 @@ function joinGame() {
         if (doc.exists) {
           console.log("Document data:", doc.data());
           alert("Joining Game")
-          db.collection("games").doc(gameId).update({
+          db.collection("game/tictactoe/games").doc(gameId).update({
             player2: nickname
           });
           console.dir(doc.data());
