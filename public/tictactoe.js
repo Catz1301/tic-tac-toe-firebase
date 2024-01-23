@@ -172,7 +172,7 @@ function checkEndOfGameStatus() {
         console.log("Not yet conclusive.")
       }
       if (sessionEnded == true) {
-        db.collection("game/tictactoe/games").doc(gameId).delete();
+        db.collection("game/tictactoe/game/tictactoe/games").doc(gameId).delete();
         if (listener != undefined)
           listener();
         document.getElementById("hostButton").style.display = "";
