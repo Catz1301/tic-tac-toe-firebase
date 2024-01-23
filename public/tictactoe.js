@@ -75,7 +75,7 @@ function setSquare(squareId) {
     // document.getElementById(squareId).innerText = isMeX ? 'X' : 'O';
   }
   // send off to firebase
-  db.collection("games").doc(gameId).update({
+  db.collection("game/tictactoe/games").doc(gameId).update({
     board: boardArr
   });
 }
@@ -128,67 +128,68 @@ function checkEndOfGameStatus() {
     confirmText = "The opponent will start first.";
   else
     confirmText = "You will start first."
+  setTimeout(() => {
+    for (let line = 0; line < winCheck.length; line++) {
+      let xWin = true;
+      let oWin = true;
+      let isNotFinished = false;
+      for (let i = 0; i < winCheck[line].length; i++) {
+        if (boardArr[winCheck[line][i]] == "X") {
+          oWin = false;
+        } else if (boardArr[winCheck[line][i]] == "O") {
+          xWin = false;
+        } else {
+          xWin = false;
+          oWin = false;
+          isNotFinished = true;
+        }
+      }
+      if (xWin) {
 
-  for (let line = 0; line < winCheck.length; line++) {
-    let xWin = true;
-    let oWin = true;
-    let isNotFinished = false;
-    for (let i = 0; i < winCheck[line].length; i++) {
-      if (boardArr[winCheck[line][i]] == "X") {
-        oWin = false;
-      } else if (boardArr[winCheck[line][i]] == "O") {
-        xWin = false;
+        if (isHost) {
+          confirmText = "The opponent will start first."
+        }
+        let playAgain = confirm("X has won! Do you want to start a new game? " + confirmText);
+        if (playAgain) {
+          resetBoard();
+          isHost = !isHost;
+          isMeX = !isMeX;
+        } else {
+          sessionEnded = true;
+        }
+        break;
+      } else if (oWin) {
+        let playAgain = confirm("O has won! Do you want to start a new game? " + confirmText);
+        if (playAgain) {
+          resetBoard();
+          isHost = !isHost;
+          isMeX = !isMeX;
+        } else {
+          sessionEnded = true;
+        }
+        break;
       } else {
-        xWin = false;
-        oWin = false;
-        isNotFinished = true;
+        console.log("Not yet conclusive.")
+      }
+      if (sessionEnded == true) {
+        db.collection("game/tictactoe/games").doc(gameId).delete();
+        if (listener != undefined)
+          listener();
+        document.getElementById("hostButton").style.display = "";
+        document.getElementById("joinButton").style.display = "";
+        listener = undefined;
       }
     }
-    if (xWin) {
 
-      if (isHost) {
-        confirmText = "The opponent will start first."
-      }
-      let playAgain = confirm("X has won! Do you want to start a new game? " + confirmText);
+    if (squaresUsed == 9) {
+      let playAgain = confirm("Draw! No party won. Do you want to start a new game?" + confirmText);
       if (playAgain) {
         resetBoard();
         isHost = !isHost;
         isMeX = !isMeX;
-      } else {
-        sessionEnded = true;
       }
-      break;
-    } else if (oWin) {
-      let playAgain = confirm("O has won! Do you want to start a new game? " + confirmText);
-      if (playAgain) {
-        resetBoard();
-        isHost = !isHost;
-        isMeX = !isMeX;
-      } else {
-        sessionEnded = true;
-      }
-      break;
-    } else {
-      console.log("Not yet conclusive.")
     }
-    if (sessionEnded == true) {
-      db.collection("games").doc(gameId).delete();
-      if (listener != undefined)
-        listener();
-      document.getElementById("hostButton").style.display = "";
-      document.getElementById("joinButton").style.display = "";
-      listener = undefined;
-    }
-  }
-
-  if (squaresUsed == 9) {
-    let playAgain = confirm("Draw! No party won. Do you want to start a new game?" + confirmText);
-    if (playAgain) {
-      resetBoard();
-      isHost = !isHost;
-      isMeX = !isMeX;
-    }
-  }
+  });
 }
 
 function getSquare(squareId) {
@@ -318,7 +319,7 @@ function joinGame() {
         if (doc.exists) {
           console.log("Document data:", doc.data());
           alert("Joining Game")
-          db.collection("games").doc(gameId).update({
+          db.collection("game/tictactoe/games").doc(gameId).update({
             player2: nickname
           });
           console.dir(doc.data());
