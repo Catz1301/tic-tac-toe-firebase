@@ -448,7 +448,7 @@ function hostGame() {
     player1: nickname,
     player2: "",
     boxes,
-    owner1,
+    "owner1": owners[0],
     "owner2": null,
     currentPlayerName
   });
