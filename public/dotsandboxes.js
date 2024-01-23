@@ -22,11 +22,9 @@ function setup() {
   pixelDensity(5);
   background(153);
   displayDensity(1);
-  // p1 = new Owner("Sarah", color(255, 165, 0));
   if (debugging) {
     debug_setupOwners();
   }
-  // p2 = new Owner("Joshua", color(0, 127, 255));
   line(0, 0, width, height);
   console.debug(width, height)
   boardWidth = width - padding - dotDiameter * 2; // subtraxt the diameter of the dots, twice. ones for each side horizontally
@@ -174,8 +172,9 @@ class Line {
           // if (mousePressed && mouseX > this.x1 + tolerance && mouseY < this.x2 - tolerance && this.horizonal == true)
           if (debugging) {
             stroke(0, 255, 0);
-            line(X1 + tolerance, Y1, X1 + tolerance, Y1);
-            line(X2 - tolerance, Y1, X2 - tolerance, Y2);
+            line(X1 + tolerance, Y1, X1 + padding + tolerance, Y2);
+            stroke(255, 0, 255);
+            line(X1 - tolerance, Y1, X2 - padding - tolerance, Y2);
             // line(this.y1 - tolerance, this.x1, this.y2 + tolerance, this.x2);
           }
           if (mouseX > X1 + tolerance && mouseX < X2 - tolerance && (
@@ -191,8 +190,9 @@ class Line {
         } else {
           if (debugging) {
             stroke(0, 255, 0);
-            line(X1, Y1 + tolerance, X1, Y2 + tolerance);
-            line(X2, Y1 - tolerance, X2, Y2 + tolerance);
+            line(X1, Y1 + tolerance + padding, X1, Y2 + tolerance + padding);
+            stroke(255, 0, 255);
+            line(X1, Y1 - tolerance - padding, X2, Y2 - tolerance - padding);
             // line(this.y1 - tolerance, this.x1, this.y2 + tolerance, this.x2);
           }
           // line (this.y1)
