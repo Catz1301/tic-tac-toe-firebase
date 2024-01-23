@@ -75,7 +75,7 @@ function touchStarted() {
 }
 
 function keyPressed(event) {
-  if (event.keyCode == 46) { 
+  if (event.keyCode == 46) {
     console.log(46);
     if (!event.repeat) {
       console.log("notHeld");
@@ -162,7 +162,7 @@ function debug_drawLines() {
 
 function debug_setBoxOwners() {
   for (let i = 0; i < boxes.length; i++) {
-    if (Math.round(random(0,2)) == 1)// % 2 == 0)
+    if (Math.round(random(0, 2)) == 1) // % 2 == 0)
       boxes[i].owner = p1;
     else
       boxes[i].owner = p2;
@@ -209,63 +209,68 @@ class Line {
   draw() {
     if (this.owner == null) {
       // if (!preview) {
-        // return;
+      // return;
       // }
       // if (preview) {
-        stroke(225);
-        strokeWeight(2);
-        var X1 = this.x1 + (dotDiameter + padding);
-        var X2 = this.x2 + (dotDiameter + padding);
-        var Y1 = this.y1 + (dotDiameter + padding);
-        var Y2 = this.y2 + (dotDiameter + padding);
-        if (debugging)
-          console.debug({X1, Y1, X2, Y2});
-        if (this.horizonal) {
-          // if (mousePressed && mouseX > this.x1 + tolerance && mouseY < this.x2 - tolerance && this.horizonal == true)
-          if (debugging) {
-            stroke(0, 255, 0);
-            line(X1 + tolerance, Y1, X1 + padding + tolerance, Y2);
-            stroke(255, 0, 255);
-            line(X1 - tolerance, Y1, X2 - padding - tolerance, Y2);
-            // line(this.y1 - tolerance, this.x1, this.y2 + tolerance, this.x2);
-          }
-          if (mouseX > X1 + tolerance && mouseX < X2 - tolerance && (
+      stroke(225);
+      strokeWeight(2);
+      var X1 = this.x1 + (dotDiameter + padding);
+      var X2 = this.x2 + (dotDiameter + padding);
+      var Y1 = this.y1 + (dotDiameter + padding);
+      var Y2 = this.y2 + (dotDiameter + padding);
+      if (debugging)
+        console.debug({
+          X1,
+          Y1,
+          X2,
+          Y2
+        });
+      if (this.horizonal) {
+        // if (mousePressed && mouseX > this.x1 + tolerance && mouseY < this.x2 - tolerance && this.horizonal == true)
+        if (debugging) {
+          stroke(0, 255, 0);
+          line(X1 + tolerance, Y1, X1 + padding + tolerance, Y2);
+          stroke(255, 0, 255);
+          line(X1 - tolerance, Y1, X2 - padding - tolerance, Y2);
+          // line(this.y1 - tolerance, this.x1, this.y2 + tolerance, this.x2);
+        }
+        if (mouseX > X1 + tolerance && mouseX < X2 - tolerance && (
             mouseY > Y1 - tolerance && mouseY < Y2 + tolerance
           )) {
-            line(this.x1, this.y1, this.x2, this.y2);
-            if (mouseIsPressed || touchStarted.length > 0) {
-              this.owner = p1; // determine player from getPlayer() function. getPlayer() will return the player object from the db.
-              this.show = true;
-            }
-            console.log("hey")
+          line(this.x1, this.y1, this.x2, this.y2);
+          if (mouseIsPressed || touchStarted.length > 0) {
+            this.owner = p1; // determine player from getPlayer() function. getPlayer() will return the player object from the db.
+            this.show = true;
           }
-        } else {
-          if (debugging) {
-            stroke(0, 255, 0);
-            line(X1, Y1 + tolerance + padding, X1, Y2 + tolerance + padding);
-            stroke(255, 0, 255);
-            line(X1, Y1 - tolerance - padding, X2, Y2 - tolerance - padding);
-            // line(this.y1 - tolerance, this.x1, this.y2 + tolerance, this.x2);
-          }
-          // line (this.y1)
-          if (mouseY > Y1 + tolerance && mouseY < Y2 - tolerance && (
+          console.log("hey")
+        }
+      } else {
+        if (debugging) {
+          stroke(0, 255, 0);
+          line(X1, Y1 + tolerance + padding, X1, Y2 + tolerance + padding);
+          stroke(255, 0, 255);
+          line(X1, Y1 - tolerance - padding, X2, Y2 - tolerance - padding);
+          // line(this.y1 - tolerance, this.x1, this.y2 + tolerance, this.x2);
+        }
+        // line (this.y1)
+        if (mouseY > Y1 + tolerance && mouseY < Y2 - tolerance && (
             mouseX > X1 - tolerance && mouseX < X2 + tolerance
           )) {
-            line(this.x1, this.y1, this.x2, this.y2);
-            if (mouseIsPressed || touchStarted.length > 0) {
-              this.owner = p1;
-              this.show = true;
-              flag_boardChange = true;
-            }
-            console.log("yo");
+          line(this.x1, this.y1, this.x2, this.y2);
+          if (mouseIsPressed || touchStarted.length > 0) {
+            this.owner = p1;
+            this.show = true;
+            flag_boardChange = true;
           }
+          console.log("yo");
         }
-        // console.log(mouseX, mouseY)
-        stroke(0, 0, 255, 150);
-        strokeWeight((tolerance*2) + 1);
-        
-        // line(this.x1, this.y1, this.x2, this.y2); // uncomment to see the tolerance
-        // console.log("no Owner");
+      }
+      // console.log(mouseX, mouseY)
+      stroke(0, 0, 255, 150);
+      strokeWeight((tolerance * 2) + 1);
+
+      // line(this.x1, this.y1, this.x2, this.y2); // uncomment to see the tolerance
+      // console.log("no Owner");
       // }
     } else {
       stroke(this.owner.color);
@@ -292,14 +297,15 @@ class Box {
           box.owner = player who captured it
           player who captured it.addScore()
   */
-  constructor(x, y) {
+  constructor(x, y, concatLineArr = true) {
     this.x = x;
     this.y = y;
     this.top = new Line(x, y, x + dotSpacing, y, true);
     this.right = new Line(x + dotSpacing, y, x + dotSpacing, y + dotSpacing, false);
     this.bottom = new Line(x + dotSpacing, y + dotSpacing, x, y + dotSpacing, true);
     this.left = new Line(x, y + dotSpacing, x, y, false);
-    lines.concat([this.top, this.right, this.bottom, this.left]);
+    if (concatLineArr)
+      lines.concat([this.top, this.right, this.bottom, this.left]);
     this.lastCaptured = false;
     this.captured = false;
   }
@@ -317,16 +323,16 @@ class Box {
 
   checkComplete() {
     if (this.top.owner != null &&
-       this.right.owner != null && 
-       this.bottom.owner != null &&
-       this.left.owner != null) {
-        let currentPlayerName = getCurrentPlayer();
-        for (let i = 0; i < owners.length; i++) {
-          if (owners[i].name === currentPlayerName) {
-            this.owner = owners[i]
-          }
+      this.right.owner != null &&
+      this.bottom.owner != null &&
+      this.left.owner != null) {
+      let currentPlayerName = getCurrentPlayer();
+      for (let i = 0; i < owners.length; i++) {
+        if (owners[i].name === currentPlayerName) {
+          this.owner = owners[i]
         }
-       }
+      }
+    }
   }
 
   draw() {
@@ -337,7 +343,7 @@ class Box {
     if (this.owner == null) {
       return;
     }
-    for (let x = 0; x < dotSpacing; x+=dotSpacing/20) {
+    for (let x = 0; x < dotSpacing; x += dotSpacing / 20) {
       stroke(this.owner.color);
       strokeWeight(2);
       line(this.x, this.y + x, this.x + x, this.y);
@@ -354,7 +360,7 @@ class Owner {
     this.score = 0;
     this.name = name;
   }
-  
+
   addScore() {
     this.score++;
   }
@@ -378,7 +384,7 @@ function update() {
     }
   }
   db.collection(basePath).doc(gameId).update({
-    boxes
+    "boxes": JSON.stringify(boxes)
   })
 }
 
@@ -417,7 +423,9 @@ function setListener(gameId) {
       }
       console.log("Current data: ", doc.data());
       // update the local board
-      boxes = doc.data().boxes;
+      boxesStr = doc.data().boxes;
+      lines = [];
+      boxes = parseBoxesString(boxesStr);
       // update the display - Do in drawBoard();
       /* for (let i = 0; i < 9; i++) {
       document.getElementById(i).innerText = boardArr[i];
@@ -437,6 +445,41 @@ function setListener(gameId) {
     });
 }
 
+function parseBoxesString(boxesString) {
+  let boxs = [];
+  let json = JSON.parse(boxesString);
+  for (let i = 0; i < json.length; i++) {
+    let box = parseBox(json[i])
+    boxs.push(box);
+  }
+  return boxs;
+}
+
+function parseBox(jsonData) {
+  let x = jsonData.x;
+  let y = jsonData.y;
+  let box = new Box(x, y, false);
+  box.top = parseLine(jsonData.top);
+  box.right = parseLine(jsonData.right);
+  box.bottom = parseLine(jsonData.bottom);
+  box.left = parseLine(jsonData.left);
+  lines.concat([box.top, box.right, box.bottom, box.left]);
+  box.lastCaptured = false;
+  box.captured = false;
+  return box;
+}
+
+function parseLine(jsonData) {
+  let line = new Line(jsonData.x1, jsonData.y1, jsonData.x2, jsonData.y2, jsonData.horizonal);
+  line.show = jsonData.show;
+  if (jsonData.owner.name == owners[0].name) {
+    line.owner = owners[0];
+  } else if (jsonData.owner.name == owners[1].name) {
+    line.owner = owners[1];
+  }
+  return line;
+}
+
 function hostGame() {
   checkForNickname();
   resetBoard();
@@ -447,10 +490,11 @@ function hostGame() {
   db.collection(basePath).doc(pin.toString()).set({
     player1: nickname,
     player2: "",
-    boxes,
+    "boxes": JSON.stringify(boxes),
     "owner1": owners[0],
     "owner2": null,
-    currentPlayerName
+    currentPlayerName,
+    gameSize
   });
   sessionEnded = false;
   setListener(gameId.toString());
@@ -497,8 +541,8 @@ function joinGame() {
           // Set up a listener for the game
           setListener(gameId);
           isHost = false; // for testing purposes only. Set accordingly when in prod.
-          currentPlayerName = 
-          sessionEnded = false;
+          currentPlayerName =
+            sessionEnded = false;
         } else {
           // doc.data() will be undefined in this case
           console.log("No such document!");
