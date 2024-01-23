@@ -13,6 +13,14 @@ var boxes = [];
 var lines = [];
 var tolerance = 25; // the amount of pixels the mouse can be off from the line and still be considered on the line
 var debugging = true;
+var debugFrameRate = false;
+var owners = [null, null]; // set [0] when hosting game, set [1] when joining game. we always send nickname every write. just check for null player spot, set with player in db write.
+var basePath = "game/dotsandboxes/games";
+var sessionEnded = false;
+var isHost = false;
+
+var flag_boardChange = false;
+
 function setup() {
   isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   if (isMobile)
@@ -26,6 +34,7 @@ function setup() {
     debug_setupOwners();
   }
   line(0, 0, width, height);
+  frameRate(60);
   console.debug(width, height)
   boardWidth = width - padding - dotDiameter * 2; // subtraxt the diameter of the dots, twice. ones for each side horizontally
   baordHeight = height - padding - dotDiameter * 2; // subtraxt the diameter of the dots, twice. ones for each side vertically
@@ -65,6 +74,30 @@ function touchStarted() {
   return false;
 }
 
+function keyPressed(event) {
+  if (event.keyCode == 46) { 
+    console.log(46);
+    if (!event.repeat) {
+      console.log("notHeld");
+      // if (event.shiftKey && event.controlKey) {} else
+      if (event.shiftKey) {
+        console.log("shift");
+        if (!debugFrameRate) {
+          frameRate(1);
+          background(29);
+          redraw();
+          debugFrameRate = true;
+        } else if (debugFrameRate) {
+          frameRate(60);
+          debugFrameRate = false;
+        }
+      } else if (event.ctrlKey) {
+        debugging = !debugging;
+      }
+    }
+  }
+}
+
 function draw() {
   // push();
   // scale(0.01);
@@ -72,11 +105,17 @@ function draw() {
   if (!boardSet)
     setupBoard();
   background(29);
+
+  if (flag_boardChange) {
+    flag_boardChange = false;
+    update();
+  }
   drawBoard();
   drawBoxes();
   if (debugging) {
     debug_drawLines();
   }
+
   // pop();
 }
 
@@ -146,6 +185,17 @@ function debug_setupOwners() {
   p2 = new Owner("Elliot", color(0, 127, 255));
 }
 
+function getLastCapturedBox() {
+  let box = null;
+  for (let i = 0; i < boxes.length; i++) {
+    if (boxes[i].lastCaptured) {
+      box = boxes[i];
+      break;
+    }
+  }
+  return box;
+}
+
 class Line {
   constructor(x1, y1, x2, y2, horizonal = false) {
     this.x1 = x1;
@@ -164,10 +214,12 @@ class Line {
       // if (preview) {
         stroke(225);
         strokeWeight(2);
-        var X1 = this.x1 + (dotDiameter + padding)
-        var X2 = this.x2 + (dotDiameter + padding)
-        var Y1 = this.y1 + (dotDiameter + padding)
-        var Y2 = this.y2 + (dotDiameter + padding)
+        var X1 = this.x1 + (dotDiameter + padding);
+        var X2 = this.x2 + (dotDiameter + padding);
+        var Y1 = this.y1 + (dotDiameter + padding);
+        var Y2 = this.y2 + (dotDiameter + padding);
+        if (debugging)
+          console.debug({X1, Y1, X2, Y2});
         if (this.horizonal) {
           // if (mousePressed && mouseX > this.x1 + tolerance && mouseY < this.x2 - tolerance && this.horizonal == true)
           if (debugging) {
@@ -203,6 +255,7 @@ class Line {
             if (mouseIsPressed || touchStarted.length > 0) {
               this.owner = p1;
               this.show = true;
+              flag_boardChange = true;
             }
             console.log("yo");
           }
@@ -247,12 +300,34 @@ class Box {
     this.bottom = new Line(x + dotSpacing, y + dotSpacing, x, y + dotSpacing, true);
     this.left = new Line(x, y + dotSpacing, x, y, false);
     lines.concat([this.top, this.right, this.bottom, this.left]);
-    this.lastCaptured = null;
+    this.lastCaptured = false;
+    this.captured = false;
   }
 
-  isCaptured() {}
+  isCaptured() {
+    if (!this.captured) {
+      if (this.checkComplete()) {
+        getLastCapturedBox().lastCaptured = false;
+        this.captured = true;
+        this.lastCaptured = true;
+      }
+    }
+    return (this.captured);
+  } // should return true if 
 
-  checkComplete() {}
+  checkComplete() {
+    if (this.top.owner != null &&
+       this.right.owner != null && 
+       this.bottom.owner != null &&
+       this.left.owner != null) {
+        let currentPlayerName = getCurrentPlayer();
+        for (let i = 0; i < owners.length; i++) {
+          if (owners[i].name === currentPlayerName) {
+            this.owner = owners[i]
+          }
+        }
+       }
+  }
 
   draw() {
     this.top.draw();
@@ -286,4 +361,155 @@ class Owner {
   getScoreString() {
     return this.name = "'s score: " + this.score;
   }
+}
+
+function update() {
+  let turnEnd = false;
+  for (let i = 0; i < boxes.length; i++) {
+    if (boxes[i].isCaptured()) {
+      turnEnd = true;
+    }
+  }
+  if (turnEnd) {
+    if (currentPlayerName == owners[0]) {
+      currentPlayerName = owners[1].name;
+    } else {
+      currentPlayerName = owners[0].name;
+    }
+  }
+  db.collection(basePath).doc(gameId).update({
+    boxes
+  })
+}
+
+function resetBoard() {
+  lines = [];
+  boxes = [];
+  setupBoard();
+}
+
+function checkForNickname() {
+  var nickname = localStorage.getItem("nickname");
+  if (nickname == null) {
+    nickname = prompt("Please enter a nickname");
+    if (nickname == "") {
+      alert("Your nickname cannot be empty.");
+      checkForNickname();
+    } else {
+      localStorage.setItem("nickname", nickname);
+    }
+  }
+  window.nickname = nickname;
+  document.getElementById("nickname").innerText = "Nickname: " + nickname;
+}
+
+function setListener(gameId) {
+  console.log("here")
+  listener = db.collection(basePath).doc(`${gameId}`)
+    .onSnapshot((doc) => {
+      if (!isGameReady && doc.data().player1 != "" && doc.data().player2 != "") {
+        if (isHost) {
+          owners[1] = owner2;
+        } else {
+          owners[0] = owner1;
+        }
+        isGameReady = true;
+      }
+      console.log("Current data: ", doc.data());
+      // update the local board
+      boxes = doc.data().boxes;
+      // update the display - Do in drawBoard();
+      /* for (let i = 0; i < 9; i++) {
+      document.getElementById(i).innerText = boardArr[i];
+      } */
+
+      if (didHostPlay == true) {
+        isHostTurn = true;
+        didHostPlay = false;
+      }
+      // check for a winner
+      // drawBoard();
+      checkEndOfGameStatus();
+      // TODO
+      if (isHost) {
+        document.getElementById("opponentName").innerText = "Playing against: " + doc.data().player2;
+      }
+    });
+}
+
+function hostGame() {
+  checkForNickname();
+  resetBoard();
+  owners[0] = new Owner(nickname, color(random(0, 255), random(0, 255), random(0, 255)));
+  currentPlayerName = nickname;
+  let pin = Math.floor(Math.random() * 9000) + 1000;
+  gameId = pin.toString();
+  db.collection(basePath).doc(pin.toString()).set({
+    player1: nickname,
+    player2: "",
+    boxes,
+    owner1,
+    "owner2": null,
+    currentPlayerName
+  });
+  sessionEnded = false;
+  setListener(gameId.toString());
+}
+
+function joinGame() {
+  checkForNickname();
+  resetBoard();
+  // get the game id from the user
+  // get the game from firebase
+  // display the game id
+  // hide the join game button
+  // hide the host game button
+  gameId = prompt("Please enter the game id");
+  if (gameId != null && gameId.length == 4) {
+    // check to see if letters are in the game id
+    if (gameId.match(/[a-z]/i)) {
+      alert("Please enter a valid game id");
+      joinGame(); // prolly a mem leak here. idk how to fix it
+    } else {
+      // the goal is to check for an existing document with the gameid. Then make a snapshot listener for the specific document.
+      // always update the local board. only update the firebase board when the local board changes.
+      /* db.collection("games").get().then((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+
+          console.log(`${doc.id} => ${doc.data()}`);
+      });
+      }); */
+      var docRef = db.collection(basePath).doc(gameId);
+
+      docRef.get().then((doc) => {
+        if (doc.exists) {
+          console.log("Document data:", doc.data());
+          alert("Joining Game")
+          db.collection(basePath).doc(gameId).update({
+            player2: nickname,
+            "owner2": owners[1]
+          });
+          console.dir(doc.data());
+          console.dir(doc);
+          document.getElementById("opponentName").innerText = "Playing against: " + doc.data().player1;
+          document.getElementById("hostButton").style.display = "none";
+          document.getElementById("joinButton").style.display = "none";
+          // Set up a listener for the game
+          setListener(gameId);
+          isHost = false; // for testing purposes only. Set accordingly when in prod.
+          currentPlayerName = 
+          sessionEnded = false;
+        } else {
+          // doc.data() will be undefined in this case
+          console.log("No such document!");
+          alert("No active game with that id");
+        }
+      }).catch((error) => {
+        console.error("Error getting document:", error);
+        alert("There was an error retrieving the game. Check the console for more details.")
+      });
+
+    }
+  }
+
 }

@@ -189,7 +189,7 @@ function checkEndOfGameStatus() {
         isMeX = !isMeX;
       }
     }
-  });
+  }, 1000);
 }
 
 function getSquare(squareId) {
@@ -219,7 +219,7 @@ function resetBoard() {
   }
   if (gameId != "") {
     try {
-      db.collection("games").doc(gameId).update({
+      db.collection("game/tictactoe/").doc(gameId).update({
         board: boardArr
       });
     } catch (e) {
