@@ -494,7 +494,7 @@ function hostGame() {
     "owner1": owners[0],
     "owner2": null,
     currentPlayerName,
-    gameSize
+    "gameSize": gridSize - 1
   });
   sessionEnded = false;
   setListener(gameId.toString());
