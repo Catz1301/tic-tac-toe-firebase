@@ -416,9 +416,10 @@ function setListener(gameId) {
     .onSnapshot((doc) => {
       if (!isGameReady && doc.data().player1 != "" && doc.data().player2 != "") {
         if (isHost) {
-          owners[1] = parseOwner(owner2);
+          if (owner2 != null)
+          owners[1] = parseOwner(doc.data().owner2);
         } else {
-          owners[0] = parseOwner(owner1);
+          owners[0] = parseOwner(doc.data().owner1);
         }
         isGameReady = true;
       }
