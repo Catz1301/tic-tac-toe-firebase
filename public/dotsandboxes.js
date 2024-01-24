@@ -72,7 +72,7 @@ function touchMoved(e) {
 
 function touchStarted() {
   console.log("touch started");
-  return false;
+  // return false;
 }
 
 function keyPressed(event) {
@@ -505,6 +505,10 @@ function hostGame() {
   });
   sessionEnded = false;
   setListener(gameId.toString());
+  document.getElementById("hostButton").style.display = "none";
+  document.getElementById("joinButton").style.display = "none";
+  document.getElementById("opponentName").innerText = "Waiting for opponent...";
+  document.getElementById("gameId").innerText = "Game ID: " + pin;
 }
 
 function joinGame() {
