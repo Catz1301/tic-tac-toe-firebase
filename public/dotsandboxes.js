@@ -415,9 +415,9 @@ function setListener(gameId) {
     .onSnapshot((doc) => {
       if (!isGameReady && doc.data().player1 != "" && doc.data().player2 != "") {
         if (isHost) {
-          owners[1] = owner2;
+          owners[1] = parseOwner(owner2);
         } else {
-          owners[0] = owner1;
+          owners[0] = parseOwner(owner1);
         }
         isGameReady = true;
       }
@@ -480,6 +480,13 @@ function parseLine(jsonData) {
   return line;
 }
 
+function parseOwner(jsonData) {
+  let name = jsonData.name;
+  let ownerColor = color(jsonData.color.levels[0], jsonData.color.levels[1], jsonData.color.levels[2]);
+  return new Owner(name, ownerColor);
+}
+
+// TODO: Fix invalid data. Unsupported Field value, custom Owner object. Found in field owner1
 function hostGame() {
   checkForNickname();
   resetBoard();
@@ -491,7 +498,7 @@ function hostGame() {
     player1: nickname,
     player2: "",
     "boxes": JSON.stringify(boxes),
-    "owner1": owners[0],
+    "owner1": JSON.stringify(owners[0]),
     "owner2": null,
     currentPlayerName,
     "gameSize": gridSize - 1
@@ -531,7 +538,7 @@ function joinGame() {
           alert("Joining Game")
           db.collection(basePath).doc(gameId).update({
             player2: nickname,
-            "owner2": owners[1]
+            "owner2": JSON.stringify(owners[1])
           });
           console.dir(doc.data());
           console.dir(doc);
