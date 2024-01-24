@@ -18,6 +18,7 @@ var owners = [null, null]; // set [0] when hosting game, set [1] when joining ga
 var basePath = "game/dotsandboxes/games";
 var sessionEnded = false;
 var isHost = false;
+var isGameReady = false;
 
 var flag_boardChange = false;
 
