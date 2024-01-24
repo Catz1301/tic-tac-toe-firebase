@@ -481,8 +481,10 @@ function parseLine(jsonData) {
   return line;
 }
 
-function parseOwner(jsonData) {
+function parseOwner(jsonDataStr) {
+  let jsonData = JSON.parse(jsonDataStr);
   console.debug(jsonData);
+  window.jsonData = jsonData;
   let name = jsonData.name;
   let ownerColor = color(jsonData.color.levels[0], jsonData.color.levels[1], jsonData.color.levels[2]);
   return new Owner(name, ownerColor);
