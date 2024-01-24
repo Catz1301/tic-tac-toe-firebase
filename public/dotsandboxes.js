@@ -473,10 +473,13 @@ function parseBox(jsonData) {
 function parseLine(jsonData) {
   let line = new Line(jsonData.x1, jsonData.y1, jsonData.x2, jsonData.y2, jsonData.horizonal);
   line.show = jsonData.show;
-  if (jsonData.owner.name == owners[0].name) {
-    line.owner = owners[0];
-  } else if (jsonData.owner.name == owners[1].name) {
-    line.owner = owners[1];
+  if (jsonData.owner !== null) {
+    if (jsonData.owner.name == owners[0].name) {
+      line.owner = owners[0];
+    }
+    else if (jsonData.owner.name == owners[1].name) {
+      line.owner = owners[1];
+    }
   }
   return line;
 }
