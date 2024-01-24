@@ -432,13 +432,9 @@ function setListener(gameId) {
       document.getElementById(i).innerText = boardArr[i];
       } */
 
-      if (didHostPlay == true) {
-        isHostTurn = true;
-        didHostPlay = false;
-      }
       // check for a winner
       // drawBoard();
-      checkEndOfGameStatus();
+      // checkEndOfGameStatus();
       // TODO
       if (isHost) {
         document.getElementById("opponentName").innerText = "Playing against: " + doc.data().player2;
