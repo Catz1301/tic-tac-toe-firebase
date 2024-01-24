@@ -482,6 +482,7 @@ function parseLine(jsonData) {
 }
 
 function parseOwner(jsonData) {
+  console.debug(jsonData);
   let name = jsonData.name;
   let ownerColor = color(jsonData.color.levels[0], jsonData.color.levels[1], jsonData.color.levels[2]);
   return new Owner(name, ownerColor);
