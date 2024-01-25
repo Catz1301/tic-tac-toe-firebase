@@ -12,7 +12,7 @@ var p2 = null;
 var boxes = [];
 var lines = [];
 var tolerance = 25; // the amount of pixels the mouse can be off from the line and still be considered on the line
-var debugging = true;
+var debugging = false;
 var debugFrameRate = false;
 var owners = [null, null]; // set [0] when hosting game, set [1] when joining game. we always send nickname every write. just check for null player spot, set with player in db write.
 var basePath = "game/dotsandboxes/games";
@@ -70,9 +70,13 @@ function touchMoved(e) {
   return false;
 }
 
+function mouseDown (){
+  return false;
+}
+
 function touchStarted() {
   console.log("touch started");
-  // return false;
+  return false;
 }
 
 function keyPressed(event) {
@@ -129,7 +133,7 @@ function setupBoard() {
     }
   }
   if (debugging) {
-    // debug_setBoxOwners();
+    debug_setBoxOwners();
     debug_drawCanvasBorder();
   }
 }
