@@ -12,7 +12,7 @@ var p2 = null;
 var boxes = [];
 var lines = [];
 var tolerance = 25; // the amount of pixels the mouse can be off from the line and still be considered on the line
-var debugging = true;
+var debugging = false;
 var debugFrameRate = false;
 var owners = [null, null]; // set [0] when hosting game, set [1] when joining game. we always send nickname every write. just check for null player spot, set with player in db write.
 var basePath = "game/dotsandboxes/games";
@@ -109,7 +109,7 @@ function draw() {
 
   if (flag_boardChange) {
     flag_boardChange = false;
-    update();
+    updateGame();
   }
   drawBoard();
   drawBoxes();
@@ -370,7 +370,7 @@ class Owner {
   }
 }
 
-function update() {
+function updateGame() {
   let turnEnd = false;
   for (let i = 0; i < boxes.length; i++) {
     if (boxes[i].isCaptured()) {
@@ -427,7 +427,9 @@ function setListener(gameId) {
       // update the local board
       boxesStr = doc.data().boxes;
       lines = [];
+      
       boxes = parseBoxesString(boxesStr);
+      console.log(boxes);
       // update the display - Do in drawBoard();
       /* for (let i = 0; i < 9; i++) {
       document.getElementById(i).innerText = boardArr[i];
