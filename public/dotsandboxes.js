@@ -1,4 +1,4 @@
-console.log("Version 0.0.1");
+console.log("Version 0.1.1");
 
 var isMobile = true;
 var boardWidth, boardHeight;
@@ -19,6 +19,7 @@ var basePath = "game/dotsandboxes/games";
 var sessionEnded = false;
 var isHost = false;
 var isGameReady = false;
+var translatePx = 5;
 
 var flag_boardChange = false;
 
@@ -70,6 +71,10 @@ function touchMoved(e) {
   return false;
 }
 
+function mouseDown (){
+  return false;
+}
+
 function touchStarted() {
   console.log("touch started");
   // return false;
@@ -102,7 +107,7 @@ function keyPressed(event) {
 function draw() {
   // push();
   // scale(0.01);
-  translate(dotDiameter + padding, dotDiameter + padding);
+  // translate(dotDiameter + padding, dotDiameter + padding);
   if (!boardSet)
     setupBoard();
   background(29);
@@ -114,6 +119,7 @@ function draw() {
   drawBoard();
   drawBoxes();
   if (debugging) {
+    // debug_setBoxOwners();
     debug_drawLines();
   }
 
@@ -122,7 +128,7 @@ function draw() {
 
 function setupBoard() {
   // TODO: Set up vars and call stuff
-  boardSet = true
+  boardSet = true;
   for (let y = 0; y < gridSize - 1; y++) {
     for (let x = 0; x < gridSize - 1; x++) {
       boxes.push(new Box(x * dotSpacing, y * dotSpacing));
@@ -199,6 +205,7 @@ function getLastCapturedBox() {
 
 class Line {
   constructor(x1, y1, x2, y2, horizonal = false) {
+    // This needs to be refactored to use the dotSpacing variable
     this.x1 = x1;
     this.y1 = y1;
     this.x2 = x2;
@@ -219,13 +226,13 @@ class Line {
       var X2 = this.x2 + (dotDiameter + padding);
       var Y1 = this.y1 + (dotDiameter + padding);
       var Y2 = this.y2 + (dotDiameter + padding);
-      if (debugging)
-        console.debug({
-          X1,
-          Y1,
-          X2,
-          Y2
-        });
+      // if (debugging)
+      //   console.debug({
+      //     X1,
+      //     Y1,
+      //     X2,
+      //     Y2
+      //   });
       if (this.horizonal) {
         // if (mousePressed && mouseX > this.x1 + tolerance && mouseY < this.x2 - tolerance && this.horizonal == true)
         if (debugging) {
@@ -242,6 +249,7 @@ class Line {
           if (mouseIsPressed || touchStarted.length > 0) {
             this.owner = p1; // determine player from getPlayer() function. getPlayer() will return the player object from the db.
             this.show = true;
+            flag_boardChange = true;
           }
           console.log("hey")
         }
@@ -371,6 +379,12 @@ class Owner {
 }
 
 function updateGame() {
+  if (!isGameReady) {
+    console.log("Game is not ready.");
+    return;
+  } else{
+    //determine whose turn it is
+  }
   let turnEnd = false;
   for (let i = 0; i < boxes.length; i++) {
     if (boxes[i].isCaptured()) {
@@ -384,9 +398,11 @@ function updateGame() {
       currentPlayerName = owners[0].name;
     }
   }
-  db.collection(basePath).doc(gameId).update({
-    "boxes": JSON.stringify(boxes)
-  })
+  let boxesString = JSON.stringify(boxes);
+  console.log(boxesString)
+  db.collection("game/dotsandboxes/games").doc(gameId).update({
+    currentPlayerName: currentPlayerName,
+  });
 }
 
 function resetBoard() {
