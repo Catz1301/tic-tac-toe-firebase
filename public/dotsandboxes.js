@@ -23,6 +23,8 @@ var translatePx = 5;
 
 var flag_boardChange = false;
 
+// var lineType = {TOP, RIGHT, BOTTOM, LEFT};
+
 function setup() {
   isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   if (isMobile)
@@ -163,6 +165,7 @@ function drawBoxes() {
 
 function debug_drawLines() {
   lines.forEach(line => {
+    // line.show = true;
     line.draw();
   });
 }
@@ -478,18 +481,26 @@ function parseBox(jsonData) {
   let x = jsonData.x;
   let y = jsonData.y;
   let box = new Box(x, y, false);
-  box.top = parseLine(jsonData.top);
-  box.right = parseLine(jsonData.right);
-  box.bottom = parseLine(jsonData.bottom);
-  box.left = parseLine(jsonData.left);
+  box.top = parseLine(jsonData.top, 0);
+  box.right = parseLine(jsonData.right, 1);
+  box.bottom = parseLine(jsonData.bottom, 2);
+  box.left = parseLine(jsonData.left, 3);
   lines.concat([box.top, box.right, box.bottom, box.left]);
   box.lastCaptured = false;
   box.captured = false;
   return box;
 }
 
-function parseLine(jsonData) {
-  let line = new Line(jsonData.x1, jsonData.y1, jsonData.x2, jsonData.y2, jsonData.horizonal);
+function parseLine(jsonData, side) {
+  let line = null;
+  if (side == 0)
+    line = new Line(jsonData.x1, jsonData.y1, jsonData.x1 + dotSpacing , jsonData.y1, true);
+  else if (side == 1)
+    line = new Line(jsonData.x1 + dotSpacing, jsonData.y1, jsonData.x1 + dotSpacing, jsonData.y1 + dotSpacing, false);
+  else if (side == 2)
+    line = new Line(jsonData.x1 + dotSpacing, jsonData.y1 + dotSpacing, jsonData.x1, jsonData.y1 + dotSpacing, true);
+  else if (side == 3)
+    line = new Line(jsonData.x1, jsonData.y1 + dotSpacing, jsonData.x1, jsonData.y1, false);
   line.show = jsonData.show;
   if (jsonData.owner !== null) {
     if (jsonData.owner.name == owners[0].name) {
