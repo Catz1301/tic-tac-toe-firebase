@@ -258,12 +258,15 @@ class Line {
           line(X1 - tolerance, Y1, X2 - padding - tolerance, Y2);
           // line(this.y1 - tolerance, this.x1, this.y2 + tolerance, this.x2);
         }
+
+        // Preview the line
         if (mouseX > X1 + tolerance && mouseX < X2 - tolerance && (
             mouseY > Y1 - tolerance && mouseY < Y2 + tolerance
           )) {
           line(this.x1, this.y1, this.x2, this.y2);
+          // is the mouse pressed? click the line
           if (mouseIsPressed || touchStarted.length > 0) {
-            this.owner = getCurrentPlayer; // determine player from getPlayer() function. getPlayer() will return the player object from the db.
+            this.owner = getCurrentPlayer(); // determine player from getPlayer() function. getPlayer() will return the player object from the db.
             this.show = true;
             flag_boardChange = true;
           }
@@ -283,7 +286,7 @@ class Line {
           )) {
           line(this.x1, this.y1, this.x2, this.y2);
           if (mouseIsPressed || touchStarted.length > 0) {
-            debugger;
+            // debugger;
             this.owner = getCurrentPlayer();
             this.show = true;
             flag_boardChange = true;
@@ -298,9 +301,12 @@ class Line {
       // line(this.x1, this.y1, this.x2, this.y2); // uncomment to see the tolerance
       // console.log("no Owner");
       // }
-    } else {
-      let owner = getOwnerFromName(this.owner);
-      stroke(owner.color);
+    } else { // if the line has an owner
+      // let owner = getOwnerFromName(this.owner);
+      if (this.owner.color instanceof color) {
+        console.log("color is color");
+      }
+      stroke(this.owner.color);
       strokeWeight(2);
       line(this.x1, this.y1, this.x2, this.y2);
     }
@@ -585,6 +591,16 @@ function getOwnerFromName(name) {
       owner = owners[i];
       break;
     }
+  }
+  if (owner == null) {
+    console.error("Owner not found.");
+    let e = new DetailedError("Owner not found.");
+    e.details = "getOwnerFromName() failed to find owner with name: " + name; ". Did you pass a string argument?";
+    e.parentFunction = "getOwnerFromName()";
+    e.fileName = "dotsandboxes.js";
+
+    throw e;
+    noLoop();
   }
   return owner;
 }
