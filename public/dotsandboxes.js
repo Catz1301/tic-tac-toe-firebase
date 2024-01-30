@@ -42,8 +42,8 @@ function setup() {
   line(0, 0, width, height);
   frameRate(60);
   console.debug(width, height)
-  boardWidth = width - padding - dotDiameter * 2; // subtraxt the diameter of the dots, twice. ones for each side horizontally
-  baordHeight = height - padding - dotDiameter * 2; // subtraxt the diameter of the dots, twice. ones for each side vertically
+  boardWidth = width - (padding * 2) - dotDiameter * 2; // subtraxt the diameter of the dots, twice. ones for each side horizontally
+  baordHeight = height - (padding * 2) - dotDiameter * 2; // subtraxt the diameter of the dots, twice. ones for each side vertically
   dotSpacing = boardWidth / 4;
   translateX = padding + dotDiameter;
   translateY = padding + dotDiameter;
