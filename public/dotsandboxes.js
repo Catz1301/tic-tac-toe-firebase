@@ -262,14 +262,14 @@ class Line {
       if (this.horizonal) {
         // if (mousePressed && mouseX > this.x1 + tolerance && mouseY < this.x2 - tolerance && this.horizonal == true)
         if (debugging) {
-          stroke(255, 255, 0);
+          stroke(255, 255, 0, 127);
           line(
             X1 - translateX,
             Y1 - translateY - tolerance,
             X2 - translateX,
             Y1 - translateY - tolerance
           );
-          stroke(0, 255, 255);
+          stroke(0, 255, 255, 127);
           line(
             X1 - translateX,
             Y1 - translateY + tolerance,
@@ -292,6 +292,7 @@ class Line {
             mouseY > Y1 - tolerance &&
             mouseY < Y2 + tolerance
           ) {
+          stroke(255);
           line(this.x1, this.y1, this.x2, this.y2);
           // is the mouse pressed? click the line
           if (isGameReady && (mouseIsPressed || touchStarted.length > 0)) {
@@ -322,7 +323,7 @@ class Line {
     } else {
       if (debugging) {
         
-        stroke(255, 255, 0);
+        stroke(255, 255, 0, 127);
         console.log(boxes[boxes.length-1].right.x1)
         if (this.x1 == boxes[boxes.length-1].right.x1 + dotDiameter ) { // for edge lines
           //console.
@@ -334,7 +335,7 @@ class Line {
           X1 - translateX - tolerance,
           Y2 - translateY
         );
-        stroke(0, 255, 255);
+        stroke(0, 255, 255, 127);
         line(
           X1 - translateX + tolerance,
           Y1 - translateY,
@@ -353,6 +354,7 @@ class Line {
             mouseX > X1 - tolerance &&
             mouseX < X2 + tolerance
           ) {
+          stroke(255)
           line(this.x1, this.y1, this.x2, this.y2);
           if (isGameReady && (mouseIsPressed || touchStarted.length > 0)) {
             // debugger;
