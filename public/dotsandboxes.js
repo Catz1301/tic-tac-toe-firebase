@@ -20,6 +20,8 @@ var sessionEnded = false;
 var isHost = false;
 var isGameReady = false;
 var translatePx = 5;
+var translateX = 0;
+var translateY = 0;
 
 var flag_boardChange = false;
 
@@ -43,6 +45,8 @@ function setup() {
   boardWidth = width - padding - dotDiameter * 2; // subtraxt the diameter of the dots, twice. ones for each side horizontally
   baordHeight = height - padding - dotDiameter * 2; // subtraxt the diameter of the dots, twice. ones for each side vertically
   dotSpacing = boardWidth / 4;
+  translateX = padding + dotDiameter;
+  translateY = padding + dotDiameter;
 }
 
 // event handlers
@@ -109,7 +113,7 @@ function keyPressed(event) {
 function draw() {
   // push();
   // scale(0.01);
-  // translate(dotDiameter + padding, dotDiameter + padding);
+  translate(translateX, translateY);
   if (!boardSet)
     setupBoard();
   background(29);
@@ -119,6 +123,7 @@ function draw() {
     updateGame();
   }
   drawBoard();
+  // pop();
   drawBoxes();
   if (debugging) {
     // debug_setBoxOwners();
@@ -238,10 +243,10 @@ class Line {
       // if (preview) {
       stroke(225);
       strokeWeight(2);
-      var X1 = this.x1 + (dotDiameter + padding);
-      var X2 = this.x2 + (dotDiameter + padding);
-      var Y1 = this.y1 + (dotDiameter + padding);
-      var Y2 = this.y2 + (dotDiameter + padding);
+      var X1 = this.x1 + (translateX);
+      var X2 = this.x2 + (translateX);
+      var Y1 = this.y1 + (translateY);
+      var Y2 = this.y2 + (translateY);
       // if (debugging)
       //   console.debug({
       //     X1,
@@ -252,20 +257,33 @@ class Line {
       if (this.horizonal) {
         // if (mousePressed && mouseX > this.x1 + tolerance && mouseY < this.x2 - tolerance && this.horizonal == true)
         if (debugging) {
-          stroke(0, 255, 0);
-          line(X1 + tolerance, Y1, X1 + padding + tolerance, Y2);
-          stroke(255, 0, 255);
-          line(X1 - tolerance, Y1, X2 - padding - tolerance, Y2);
+          stroke(255, 255, 0);
+          line(
+            X1 - translateX,
+            Y1 - translateY - tolerance,
+            X2 - translateX,
+            Y1 - translateY - tolerance
+          );
+          stroke(0, 255, 255);
+          line(
+            X1 - translateX,
+            Y1 - translateY + tolerance,
+            X2 - translateX,
+            Y1 - translateY + tolerance
+          );
           // line(this.y1 - tolerance, this.x1, this.y2 + tolerance, this.x2);
         }
 
         // Preview the line
-        if (mouseX > X1 + tolerance && mouseX < X2 - tolerance && (
-            mouseY > Y1 - tolerance && mouseY < Y2 + tolerance
-          )) {
+        if (
+            mouseX > X1 - tolerance &&
+            mouseX < X2 + tolerance &&
+            mouseY > Y1 - tolerance &&
+            mouseY < Y2 + tolerance
+          ) {
           line(this.x1, this.y1, this.x2, this.y2);
           // is the mouse pressed? click the line
-          if (mouseIsPressed || touchStarted.length > 0) {
+          if (isGameReady && (mouseIsPressed || touchStarted.length > 0)) {
             this.owner = getCurrentPlayer(); // determine player from getPlayer() function. getPlayer() will return the player object from the db.
             this.show = true;
             flag_boardChange = true;
@@ -274,18 +292,33 @@ class Line {
         }
       } else {
         if (debugging) {
-          stroke(0, 255, 0);
-          line(X1, Y1 + tolerance + padding, X1, Y2 + tolerance + padding);
+          
+          stroke(255, 255, 0);
+          // line(this.x1, this.y1, this.x2, this.y2);
+          line(
+            X1 - translateX - tolerance,
+            Y1 - translateY,
+            X1 - translateX - tolerance,
+            Y2 - translateY
+          );
           stroke(0, 255, 255);
-          line(X1, Y1 - tolerance - padding, X2, Y2 - tolerance - padding);
+          line(
+            X1 - translateX + tolerance,
+            Y1 - translateY,
+            X1 - translateX + tolerance,
+            Y2 - translateY
+          );
           // line(this.y1 - tolerance, this.x1, this.y2 + tolerance, this.x2);
         }
         // line (this.y1)
-        if (mouseY > Y1 + tolerance && mouseY < Y2 - tolerance && (
-            mouseX > X1 - tolerance && mouseX < X2 + tolerance
-          )) {
+        if (
+            mouseY > Y1 - tolerance &&
+            mouseY < Y2 + tolerance &&
+            mouseX > X1 - tolerance &&
+            mouseX < X2 + tolerance
+          ) {
           line(this.x1, this.y1, this.x2, this.y2);
-          if (mouseIsPressed || touchStarted.length > 0) {
+          if (isGameReady && (mouseIsPressed || touchStarted.length > 0)) {
             // debugger;
             this.owner = getCurrentPlayer();
             this.show = true;
@@ -295,7 +328,7 @@ class Line {
         }
       }
       // console.log(mouseX, mouseY)
-      stroke(0, 0, 255, 150);
+      stroke(255, 255, 255, 25);
       strokeWeight((tolerance * 2) + 1);
 
       // line(this.x1, this.y1, this.x2, this.y2); // uncomment to see the tolerance
