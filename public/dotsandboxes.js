@@ -127,7 +127,11 @@ function draw() {
   drawBoxes();
   if (debugging) {
     // debug_setBoxOwners();
+    push();
+    translate(-translateX, -translateY);
     debug_drawLines();
+    debug_drawCanvasBorder();
+    pop();
   }
 
   // pop();
@@ -142,10 +146,10 @@ function setupBoard() {
       boxes.push(new Box(x * dotSpacing, y * dotSpacing, idStart++));
     }
   }
-  if (debugging) {
-    // debug_setBoxOwners();
-    debug_drawCanvasBorder();
-  }
+  // if (debugging) {
+  //   // debug_setBoxOwners();
+    
+  // }
 }
 
 function drawBoard() {
@@ -225,7 +229,7 @@ function getCurrentPlayer() {
 }
 
 class Line {
-  constructor(x1, y1, x2, y2, horizonal = false) {
+  constructor(x1, y1, x2, y2, id, horizonal = false) {
     // This needs to be refactored to use the dotSpacing variable
     this.x1 = x1;
     this.y1 = y1;
@@ -234,6 +238,7 @@ class Line {
     this.show = false;
     this.owner = null;
     this.horizonal = horizonal;
+    this.lineId = id;
   }
   draw() {
     if (this.owner == null) {
@@ -275,9 +280,15 @@ class Line {
         }
 
         // Preview the line
+        //  --
+        // if (this.y1 == height) {
+        //   stroke(255, 255, 0);
+        //   strokeWeight(2);
+        //   line(this.x1, this.y1, this.x2, this.y2);
+        // }
         if (
-            mouseX > X1 - tolerance &&
-            mouseX < X2 + tolerance &&
+            mouseX > X1 + tolerance &&
+            mouseX < X2 - tolerance &&
             mouseY > Y1 - tolerance &&
             mouseY < Y2 + tolerance
           ) {
@@ -290,30 +301,55 @@ class Line {
           }
           console.log("hey")
         }
-      } else {
-        if (debugging) {
-          
-          stroke(255, 255, 0);
-          // line(this.x1, this.y1, this.x2, this.y2);
-          line(
-            X1 - translateX - tolerance,
-            Y1 - translateY,
-            X1 - translateX - tolerance,
-            Y2 - translateY
-          );
-          stroke(0, 255, 255);
-          line(
-            X1 - translateX + tolerance,
-            Y1 - translateY,
-            X1 - translateX + tolerance,
-            Y2 - translateY
-          );
-          // line(this.y1 - tolerance, this.x1, this.y2 + tolerance, this.x2);
-        }
-        // line (this.y1)
-        if (
+        let byteBox = this.lineId >> 8;
+        let byteSide = this.lineId & 0x00FF;
+        let boxX = byteBox % (gridSize - 1);
+        let boxY = Math.floor(byteBox / (gridSize - 1));
+        if (boxY == gridSize - 2 && byteSide == 2) {
+          // Check if mouseY is near this line
+          if (
             mouseY > Y1 - tolerance &&
             mouseY < Y2 + tolerance &&
+            mouseX < X1 - tolerance &&
+            mouseX > X2 + tolerance
+          ) {
+            // Do something when mouseY is near this line
+            // console.log("MouseY is near this line");
+            line(this.x1, this.y1, this.x2, this.y2);
+          }
+        }
+      
+    } else {
+      if (debugging) {
+        
+        stroke(255, 255, 0);
+        console.log(boxes[boxes.length-1].right.x1)
+        if (this.x1 == boxes[boxes.length-1].right.x1 + dotDiameter ) { // for edge lines
+          //console.
+        }
+        // line(this.x1, this.y1, this.x2, this.y2);
+        line(
+          X1 - translateX - tolerance,
+          Y1 - translateY,
+          X1 - translateX - tolerance,
+          Y2 - translateY
+        );
+        stroke(0, 255, 255);
+        line(
+          X1 - translateX + tolerance,
+          Y1 - translateY,
+          X1 - translateX + tolerance,
+          Y2 - translateY
+        );
+        // line(this.y1 - tolerance, this.x1, this.y2 + tolerance, this.x2);
+      }
+        
+        // line (this.y1)
+
+        //  |
+        if (
+            mouseY > Y1 + tolerance &&
+            mouseY < Y2 - tolerance &&
             mouseX > X1 - tolerance &&
             mouseX < X2 + tolerance
           ) {
@@ -324,7 +360,26 @@ class Line {
             this.show = true;
             flag_boardChange = true;
           }
-          console.log("yo");
+          // console.log("yo");
+        }
+        
+        let byteBox = this.lineId >> 8;
+        let byteSide = this.lineId & 0x00FF;
+        let boxX = byteBox % (gridSize - 1);
+        // let boxY = Math.floor(byteBox / (gridSize - 1));
+        if (boxX == 0 && byteSide == 3) {
+          // Check if mouseY is near this line
+          if (
+            mouseX > X1 - tolerance &&
+            mouseX < X2 + tolerance &&
+            mouseY < Y1 - tolerance &&
+            mouseY > Y2 + tolerance
+            
+          ) {
+            // Do something when mouseY is near this line
+            // console.log("MouseY is near this line");
+            line(this.x1, this.y1, this.x2, this.y2);
+          }
         }
       }
       // console.log(mouseX, mouseY)
@@ -366,10 +421,11 @@ class Box {
   constructor(x, y, id, concatLineArr = true) {
     this.x = x;
     this.y = y;
-    this.top = new Line(x, y, x + dotSpacing, y, true);
-    this.right = new Line(x + dotSpacing, y, x + dotSpacing, y + dotSpacing, false);
-    this.bottom = new Line(x + dotSpacing, y + dotSpacing, x, y + dotSpacing, true);
-    this.left = new Line(x, y + dotSpacing, x, y, false);
+    let byteBox = id;
+    this.top = new Line(x, y, x + dotSpacing, y, ((id << 8) | 0x00), true);
+    this.right = new Line(x + dotSpacing, y, x + dotSpacing, y + dotSpacing, ((id << 8) | 0x01), false);
+    this.bottom = new Line(x + dotSpacing, y + dotSpacing, x, y + dotSpacing, ((id << 8) | 0x02), true);
+    this.left = new Line(x, y + dotSpacing, x, y, ((id << 8) | 0x03), false);
     this.id = id;
 
     if (concatLineArr)
@@ -397,7 +453,7 @@ class Box {
       let currentPlayerName = getCurrentPlayer();
       for (let i = 0; i < owners.length; i++) {
         if (owners[i].name === currentPlayerName) {
-          this.owner = owners[i]
+          this.owner = owners[i];
         }
       }
     }
@@ -577,14 +633,15 @@ function parseLine(jsonData, id, side) {
   let parseX = boardX * dotSpacing;
   let parseY = boardY * dotSpacing;
   let parseX2, parseY2;
+
   if (side == 0) { // TOP
-    line = new Line(parseX, parseY, parseX + dotSpacing, parseY, true);
+    line = new Line(parseX, parseY, parseX + dotSpacing, parseY, jsonData.lineId, true);
   } else if (side == 1) { // RIGHT
-    line = new Line(parseX + dotSpacing, parseY, parseX + dotSpacing, parseY + dotSpacing, false);
+    line = new Line(parseX + dotSpacing, parseY, parseX + dotSpacing, parseY + dotSpacing, jsonData.lineId, false);
   } else if (side == 2) { // BOTTOM
-    line = new Line(parseX + dotSpacing, parseY + dotSpacing, parseX, parseY + dotSpacing, true);
+    line = new Line(parseX + dotSpacing, parseY + dotSpacing, parseX, parseY + dotSpacing, jsonData.lineId, true);
   } else if (side == 3) { // LEFT
-    line = new Line(parseX, parseY + dotSpacing, parseX, parseY, false);
+    line = new Line(parseX, parseY + dotSpacing, parseX, parseY, jsonData.lineId, false);
   } 
   console.log("LINE jsonData: ", jsonData)
   line.show = jsonData.show;
