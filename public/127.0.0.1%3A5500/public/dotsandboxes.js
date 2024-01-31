@@ -12,7 +12,7 @@ var p2 = null;
 var boxes = [];
 var lines = [];
 var tolerance = 25; // the amount of pixels the mouse can be off from the line and still be considered on the line
-var debugging = false;//true;
+var debugging = true;
 var debugFrameRate = false;
 var owners = [null, null]; // set [0] when hosting game, set [1] when joining game. we always send nickname every write. just check for null player spot, set with player in db write.
 var basePath = "game/dotsandboxes/games";
@@ -24,8 +24,6 @@ var translateX = 0;
 var translateY = 0;
 var debug_enableTargetBox = true;
 var debug_targetBoxId = 5;
-var debug_doDebugger = false;
-var currentPlayerName = null;
 
 var flag_boardChange = false;
 
@@ -256,18 +254,10 @@ function synchronizeBoxSides() {
     let box = boxes[i];
     let boxX = box.id % (gridSize - 1);
     let boxY = Math.floor(box.id / (gridSize - 1));
-    let boxTop = undefined;
-    let boxRight = undefined;
-    let boxBottom = undefined;
-    let boxLeft = undefined;
-    if (boxY != 0)
-      boxTop = debug_getBox(boxX, boxY - 1);
-    if (boxX != gridSize - 2) // - 2 because the last box is not a box, it's a line, and we start at 0
-      boxRight = debug_getBox(boxX + 1, boxY);
-    if (boxY != gridSize - 2)
-      boxBottom = debug_getBox(boxX, boxY + 1);
-    if (boxX != 0)
-      boxLeft = debug_getBox(boxX - 1, boxY);
+    let boxTop = debug_getBox(boxX, boxY - 1);
+    let boxRight = debug_getBox(boxX + 1, boxY);
+    let boxBottom = debug_getBox(boxX, boxY + 1);
+    let boxLeft = debug_getBox(boxX - 1, boxY);
     
     // checking top line
     if (boxTop != undefined) {
@@ -327,32 +317,6 @@ function synchronizeBoxSides() {
     }
   }
   console.timeEnd("synchronizeBoxSides");
-}
-
-function checkEndOfGameStatus() {
-  for (let i = 0; i < boxes.length; i++) {
-    if (boxes[i].owner == null) {
-      return false;
-    }
-  }
-  let winner = null;
-  if (owners[0].score > owners[1].score) {
-    winner = owners[0];
-  } else if (owners[1].score > owners[0].score) {
-    winner = owners[1];
-  } else {
-    noLoop();
-  }
-  if (winner == null) {
-    setTimeout(() => {
-      alert("It's a tie!");
-    }, 1000);
-  } else {
-    setTimeout(() => {
-      alert(winner.name + " wins with " + winner.score + " boxes!!");
-    }, 1000);
-  }
-  return true;
 }
 
 class Line {
@@ -422,7 +386,7 @@ class Line {
           stroke(255);
           line(this.x1, this.y1, this.x2, this.y2);
           // is the mouse pressed? click the line
-          if (isGameReady && currentPlayerName == nickname && (mouseIsPressed || touchStarted.length > 0)) {
+          if (isGameReady && (mouseIsPressed || touchStarted.length > 0)) {
             this.owner = getCurrentPlayer(); // determine player from getPlayer() function. getPlayer() will return the player object from the db.
             this.show = true;
             flag_boardChange = true;
@@ -446,7 +410,7 @@ class Line {
             stroke(255);
             line(this.x1, this.y1, this.x2, this.y2);
             // is the mouse pressed? click the line
-            if (isGameReady && currentPlayerName == nickname && (mouseIsPressed || touchStarted.length > 0)) {
+            if (isGameReady && (mouseIsPressed || touchStarted.length > 0)) {
               this.owner = getCurrentPlayer(); // determine player from getPlayer() function. getPlayer() will return the player object from the db.
               this.show = true;
               flag_boardChange = true;
@@ -459,9 +423,9 @@ class Line {
         
         stroke(255, 255, 0, 127);
         //console.log(boxes[boxes.length-1].right.x1)
-        /* if (this.x1 == boxes[boxes.length-1].right.x1 + dotDiameter ) { // for edge lines
+        if (this.x1 == boxes[boxes.length-1].right.x1 + dotDiameter ) { // for edge lines
           //console.
-        } */
+        }
         // line(this.x1, this.y1, this.x2, this.y2);
         line(
           X1 - translateX - tolerance,
@@ -490,7 +454,7 @@ class Line {
           ) {
           stroke(255)
           line(this.x1, this.y1, this.x2, this.y2);
-          if (isGameReady && currentPlayerName == nickname && (mouseIsPressed || touchStarted.length > 0)) {
+          if (isGameReady && (mouseIsPressed || touchStarted.length > 0)) {
             // debugger;
             this.owner = getCurrentPlayer();
             this.show = true;
@@ -516,7 +480,7 @@ class Line {
             // console.log("MouseY is near this line");
             stroke(255)
             line(this.x1, this.y1, this.x2, this.y2);
-            if (isGameReady && currentPlayerName == nickname && (mouseIsPressed || touchStarted.length > 0)) {
+            if (isGameReady && (mouseIsPressed || touchStarted.length > 0)) {
               // debugger;
               this.owner = getCurrentPlayer();
               this.show = true;
@@ -570,7 +534,6 @@ class Box {
     this.bottom = new Line(x + dotSpacing, y + dotSpacing, x, y + dotSpacing, ((id << 8) | 0x02), true);
     this.left = new Line(x, y + dotSpacing, x, y, ((id << 8) | 0x03), false);
     this.id = id;
-    this.owner = null;
 
     if (concatLineArr)
       lines.concat([this.top, this.right, this.bottom, this.left]);
@@ -579,8 +542,8 @@ class Box {
   }
 
   isCaptured() {
-    // if (this.id == 5 && debugging)
-    //   debugger;
+    if (this.id == 5 && debugging)
+      debugger;
     if (!this.captured) {
       if (this.checkComplete()) {
         let lastCapturedBox = getLastCapturedBox();
@@ -589,14 +552,7 @@ class Box {
         }
         this.captured = true;
         this.lastCaptured = true;
-        if (this.owner == null) {
-          this.owner = getCurrentPlayer();
-          this.owner.addScore();
-        }
       }
-    }
-    if (this.owner != null) {
-      this.captured = true;
     }
     return (this.lastCaptured);
   } // should return true if 
@@ -656,27 +612,18 @@ function updateGame() {
   if (!isGameReady) {
     console.log("Game is not ready.");
     return;
-  } else if (sessionEnded) {
-    console.log("Session has ended or has not started yet.");
+  } else {
     //determine whose turn it is
   }
-  let turnEnd = true;
+  let turnEnd = false;
   synchronizeBoxSides();
-  if (checkEndOfGameStatus()) {
-    sessionEnded = true;
-    return;
-  }
-  let lastCapturedBox = getLastCapturedBox();
-  if (lastCapturedBox != null) {
-    lastCapturedBox.lastCaptured = false;
-  }
   for (let i = 0; i < boxes.length; i++) {
-    if (boxes[i].isCaptured()) { //somehow clear lastCaptured after 1 turn.
-      turnEnd = false;
+    if (!boxes[i].isCaptured()) {
+      turnEnd = true;
     }
   }
   if (turnEnd) {
-    if (currentPlayerName == owners[0].name) {
+    if (currentPlayerName == owners[0]) {
       currentPlayerName = owners[1].name;
     } else {
       currentPlayerName = owners[0].name;
@@ -732,9 +679,8 @@ function setListener(gameId) {
         // if (isHost) {
           console.log("Player 1: ", doc.data().player1);
           console.log("Player 2: ", doc.data().player2);
-          owners[0] = new Owner(doc.data().player1, color(random(0, 255), random(0, 255), random(0, 255))); //parseOwner(doc.data().owner1);
-          if (!isHost)
-            currentPlayerName = doc.data().player1;
+          owners[0] = parseOwner(doc.data().owner1);
+          // if (!isHost)
             owners[1] = new Owner(doc.data().player2, color(random(0, 255), random(0, 255), random(0, 255)));
         isGameReady = true;
       } else if (!isGameReady) {
@@ -748,7 +694,6 @@ function setListener(gameId) {
         lines = [];
         
         boxes = parseBoxesString(boxesStr);
-        currentPlayerName = doc.data().currentPlayerName;
         console.group("incoming");
         console.log(boxes);
         console.groupEnd();
@@ -782,26 +727,15 @@ function parseBoxesString(boxesString) {
 function parseBox(jsonData) {
   //let jsonData = JSON.parse(jsonDataStr);
   console.log("Boxes: ", jsonData)
-  let x = jsonData.id % (gridSize - 1);
-  let y = Math.floor(jsonData.id / (gridSize - 1));
+  let x = jsonData.x;
+  let y = jsonData.y;
   // debugger;
-
-  let box = new Box(x * dotSpacing, y * dotSpacing, jsonData.id, false);
+  let box = new Box(x, y, jsonData.id, false);
   box.top = parseLine(jsonData.top, jsonData.id, 0);
   box.right = parseLine(jsonData.right, jsonData.id, 1);
   box.bottom = parseLine(jsonData.bottom, jsonData.id, 2);
   box.left = parseLine(jsonData.left, jsonData.id, 3);
-  // box.horizonal = jsonData.horizonal;
-  if (jsonData.owner != null) {
-    if (jsonData.owner.name == owners[0].name) {
-      box.owner = owners[0];
-    }
-    else if (jsonData.owner.name == owners[1].name) {
-      box.owner = owners[1];
-    }
-  } else {
-    box.owner = null;
-  }
+  box.horizonal = jsonData.horizonal;
   lines.concat([box.top, box.right, box.bottom, box.left]);
   box.lastCaptured = false;
   box.captured = false;
@@ -942,8 +876,8 @@ function joinGame() {
           // Set up a listener for the game
           setListener(gameId);
           isHost = false; // for testing purposes only. Set accordingly when in prod.
-          // currentPlayerName =
-            // sessionEnded = false;
+          currentPlayerName =
+            sessionEnded = false;
         } else {
           // doc.data() will be undefined in this case
           console.log("No such document!");
