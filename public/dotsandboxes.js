@@ -61,11 +61,13 @@ function mouseMoved(e) {
   // boxes.forEach(box => {
   //   console.log(box);
   // });
-  push();
-  stroke(0, 255, 0);
-  fill(255, 0, 255);
-  circle(mouseX, mouseY, 10);
-  pop();
+  if (debugging) {
+    push();
+    stroke(0, 255, 0);
+    fill(255, 0, 255);
+    circle(mouseX, mouseY, 10);
+    pop();
+  }
 }
 
 function touchMoved(e) {
@@ -74,11 +76,13 @@ function touchMoved(e) {
   // boxes.forEach(box => {
   //   console.log(box);
   // });
-  push();
-  stroke(0, 255, 0);
-  fill(255, 0, 255);
-  circle(mouseX, mouseY, 10);
-  pop();
+  if (debugging) {
+    push();
+    stroke(0, 255, 0);
+    fill(255, 0, 255);
+    circle(mouseX, mouseY, 10);
+    pop();
+  }
   return false;
 }
 
@@ -350,19 +354,20 @@ function synchronizeBoxSides() {
 }
 
 function checkEndOfGameStatus() {
+  // let winner = null;
   let winner = null;
-  let winner = null;
+  let capturedBoxes = 0;
   for (let i = 0; i < boxes.length; i++) {
+    if (boxes[i].captured)
+      capturedBoxes++;
     if (boxes[i].owner == null) {
-      winner = false;
       winner = false;
     }
   }
-  
-  if (owners[0].score == (gridSize - 1)*(gridSize-1) && owners[0].score == (gridSize - 1)*(gridSize-1)) {
-    winner = null;
-  } else if (owners[0].score > owners[1].score) {
-  
+  if (capturedBoxes != boxes.length) {
+    console.warn("capturedBoxes: " + capturedBoxes);
+    return undefined;
+  }
   if (owners[0].score == (gridSize - 1)*(gridSize-1) && owners[0].score == (gridSize - 1)*(gridSize-1)) {
     winner = null;
   } else if (owners[0].score > owners[1].score) {
@@ -372,6 +377,7 @@ function checkEndOfGameStatus() {
   } else {
     // noLoop();
   }
+  // TODO: scores aren't syncing up, thats an issue.
   return winner;
   // return true;
 }
@@ -757,6 +763,7 @@ function updateGame() {
   }
   for (let i = 0; i < boxes.length; i++) {
     if (boxes[i].isCaptured()) { //somehow clear lastCaptured after 1 turn.
+      // getOwnerFromName(boxes[i].owner.name)
       turnEnd = false;
     }
   }
@@ -847,6 +854,8 @@ function setListener(gameId) {
             debugger;
         }
         let winner = checkEndOfGameStatus();
+        if (winner == undefined)
+          return;
         if (winner == null) {
           setTimeout(() => {
             alert("It's a tie!");
