@@ -76,21 +76,6 @@ body {
     justify-content: center;
 }
 
-#gamecontrols {
-    /* flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    margin-bottom: 20px;
-    right: 50%; */
-    position: fixed;
-    bottom: 20px;
-    margin: 0 auto;
-    width: 100%;
-    text-align: center;
-}
 p {
     color: white;
 }
@@ -150,12 +135,48 @@ p {
 }
 
 #gamecontrols {
-    display: flex;
-    flex-direction: row;
+    /* flex-direction: row;
     justify-content: center;
     align-items: center;
+    position: fixed;
     bottom: 20px;
+    left: 50%;
     margin-bottom: 20px;
+    right: 50%;
+    position: fixed;
+    bottom: 20px;
+    margin: 0 auto;
+    width: 100%;
+    text-align: center; */
+    
+    position: fixed;
+    bottom: 20px;
+    margin: 0 auto;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    align-content: center;
+    grid-row: 2;
+    flex-direction: column;
+    flex-wrap: wrap;
+}
+
+#information {
+    display: flex;
+    margin-top: 1em;
+}
+
+#gamecontrols > #buttons{
+    /* display: flex;
+    flex-direction: row;
+    justify-content: center;
+    /* align-items: center; */
+    bottom: 20px;
+    margin-bottom: 10px;
+}
+
+#gameControls p.info {
+    margin-top: 10px;
 }
 
 .game-grid {
