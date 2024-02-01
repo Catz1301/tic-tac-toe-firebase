@@ -1,4 +1,4 @@
-console.log("Version 0.1.1");
+console.log("Welcome to Dots and Boxes, Version 1.0");
 
 var isMobile = true;
 var boardWidth, boardHeight;
@@ -737,6 +737,9 @@ function setListener(gameId) {
             currentPlayerName = doc.data().player1;
             owners[1] = new Owner(doc.data().player2, color(random(0, 255), random(0, 255), random(0, 255)));
         isGameReady = true;
+        if (isHost) {
+          document.getElementById("opponentName").innerText = "Playing against: " + doc.data().player2;
+        }
       } else if (!isGameReady) {
         return
       } else {
@@ -761,9 +764,6 @@ function setListener(gameId) {
         // drawBoard();
         // checkEndOfGameStatus();
         // TODO
-        if (isHost) {
-          document.getElementById("opponentName").innerText = "Playing against: " + doc.data().player2;
-        }
       }
     });
 }
@@ -803,8 +803,8 @@ function parseBox(jsonData) {
     box.owner = null;
   }
   lines.concat([box.top, box.right, box.bottom, box.left]);
-  box.lastCaptured = false;
-  box.captured = false;
+  box.lastCaptured = jsonData.lastCaptured;
+  box.captured = jsonData.captured;
   return box;
 }
 // not parsing the owner correctly. check owner of lines when they are clicked
@@ -878,6 +878,7 @@ function getOwnerFromName(name) {
 }
 
 function hostGame() {
+  isHost = true;
   checkForNickname();
   resetBoard();
   owners[0] = new Owner(nickname, color(random(0, 255), random(0, 255), random(0, 255)));
