@@ -351,11 +351,17 @@ function synchronizeBoxSides() {
 
 function checkEndOfGameStatus() {
   let winner = null;
+  let winner = null;
   for (let i = 0; i < boxes.length; i++) {
     if (boxes[i].owner == null) {
       winner = false;
+      winner = false;
     }
   }
+  
+  if (owners[0].score == (gridSize - 1)*(gridSize-1) && owners[0].score == (gridSize - 1)*(gridSize-1)) {
+    winner = null;
+  } else if (owners[0].score > owners[1].score) {
   
   if (owners[0].score == (gridSize - 1)*(gridSize-1) && owners[0].score == (gridSize - 1)*(gridSize-1)) {
     winner = null;
@@ -365,6 +371,42 @@ function checkEndOfGameStatus() {
     winner = owners[1];
   } else {
     // noLoop();
+  }
+  return winner;
+  // return true;
+}
+
+function clickRandomLine() {
+  let box = random(boxes);
+  let side = Math.floor(random(4));
+  if (side == 0) {
+    if (box.top.owner == null)
+      box.top.click();
+    else {
+      clickRandomLine();
+      return;
+    }
+  } else if (side == 1) {
+    if (box.right.owner == null) {
+      box.right.click();
+    } else {
+      clickRandomLine();
+      return;
+    }
+  } else if (side == 2) {
+    if (box.bottom.owner == null) {
+      box.bottom.click();
+    } else {
+      clickRandomLine();
+      return;
+    }
+  } else if (side == 3) {
+    if (box.left.owner == null) {
+      box.left.click();
+    } else {
+      clickRandomLine();
+      return;
+    }
   }
   return winner;
   // return true;
