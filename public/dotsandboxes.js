@@ -1,4 +1,4 @@
-console.log("Welcome to Dots and Boxes, Version 1.0");
+console.log("Welcome to Dots and Boxes, Version 1.1");
 
 var isMobile = true;
 var boardWidth, boardHeight;
@@ -26,9 +26,10 @@ var debug_enableTargetBox = true;
 var debug_targetBoxId = 5;
 var debug_doDebugger = false;
 var currentPlayerName = null;
-
+var autoMode = false;
+var flag_allowAutoMode = false;
 var flag_boardChange = false;
-
+var flag_allowDebugger = true;
 // var lineType = {TOP, RIGHT, BOTTOM, LEFT};
 
 function setup() {
@@ -48,7 +49,7 @@ function setup() {
   console.debug(width, height)
   boardWidth = width - (padding * 2) - dotDiameter * 2; // subtraxt the diameter of the dots, twice. ones for each side horizontally
   baordHeight = height - (padding * 2) - dotDiameter * 2; // subtraxt the diameter of the dots, twice. ones for each side vertically
-  dotSpacing = boardWidth / 4;
+  dotSpacing = boardWidth / gridSize - 1;
   translateX = padding + dotDiameter;
   translateY = padding + dotDiameter;
 }
@@ -81,13 +82,8 @@ function touchMoved(e) {
   return false;
 }
 
-function mouseDown (){
+function mouseDown () {
   return false;
-}
-
-function touchStarted() {
-  console.log("touch started");
-  // return false;
 }
 
 function keyPressed(event) {
@@ -112,6 +108,30 @@ function keyPressed(event) {
       }
     }
   }
+  if (event.keyCode == 191) {
+    if (flag_allowAutoMode)
+      autoMode = !autoMode;
+  }
+}
+
+function startAutobot() {
+  if (!flag_allowAutoMode)
+    return;
+  if (!isHost)
+    return;
+  if (owners[1] == null) {
+    owners[1] = new Owner("bot", color(random(255), random(255), random(255)));
+    autoMode = true;
+    db.collection(basePath).doc(gameId).update({
+      player2: owners[1].name,
+      owner2: JSON.stringify(owners[1])
+    });
+    // clickRandomLine();
+  }
+}
+
+function touchStarted() {
+  console.log("touchStarted");
 }
 
 function draw() {
@@ -144,8 +164,12 @@ function draw() {
       noFill();
     }
   }
-
   // pop();
+}
+
+function regenerateColors() {
+  owners[0].color = color(random(255), random(255), random(255))
+  owners[1].color = color(random(255), random(255), random(255))
 }
 
 function setupBoard() {
@@ -157,10 +181,6 @@ function setupBoard() {
       boxes.push(new Box(x * dotSpacing, y * dotSpacing, idStart++));
     }
   }
-  // if (debugging) {
-  //   // debug_setBoxOwners();
-    
-  // }
 }
 
 function drawBoard() {
@@ -330,29 +350,58 @@ function synchronizeBoxSides() {
 }
 
 function checkEndOfGameStatus() {
+  let winner = null;
   for (let i = 0; i < boxes.length; i++) {
     if (boxes[i].owner == null) {
-      return false;
+      winner = false;
     }
   }
-  let winner = null;
-  if (owners[0].score > owners[1].score) {
+  
+  if (owners[0].score == (gridSize - 1)*(gridSize-1) && owners[0].score == (gridSize - 1)*(gridSize-1)) {
+    winner = null;
+  } else if (owners[0].score > owners[1].score) {
     winner = owners[0];
   } else if (owners[1].score > owners[0].score) {
     winner = owners[1];
   } else {
-    noLoop();
+    // noLoop();
   }
-  if (winner == null) {
-    setTimeout(() => {
-      alert("It's a tie!");
-    }, 1000);
-  } else {
-    setTimeout(() => {
-      alert(winner.name + " wins with " + winner.score + " boxes!!");
-    }, 1000);
+  return winner;
+  // return true;
+}
+
+function clickRandomLine() {
+  let box = random(boxes);
+  let side = Math.floor(random(4));
+  if (side == 0) {
+    if (box.top.owner == null)
+      box.top.click();
+    else {
+      clickRandomLine();
+      return;
+    }
+  } else if (side == 1) {
+    if (box.right.owner == null) {
+      box.right.click();
+    } else {
+      clickRandomLine();
+      return;
+    }
+  } else if (side == 2) {
+    if (box.bottom.owner == null) {
+      box.bottom.click();
+    } else {
+      clickRandomLine();
+      return;
+    }
+  } else if (side == 3) {
+    if (box.left.owner == null) {
+      box.left.click();
+    } else {
+      clickRandomLine();
+      return;
+    }
   }
-  return true;
 }
 
 class Line {
@@ -367,6 +416,13 @@ class Line {
     this.horizonal = horizonal;
     this.lineId = id;
   }
+
+  click() {
+    this.owner = getCurrentPlayer(); // determine player from getPlayer() function. getPlayer() will return the player object from the db.
+    this.show = true;
+    flag_boardChange = true;
+  }
+
   draw() {
     if (this.owner == null) {
       // if (!preview) {
@@ -423,11 +479,9 @@ class Line {
           line(this.x1, this.y1, this.x2, this.y2);
           // is the mouse pressed? click the line
           if (isGameReady && currentPlayerName == nickname && (mouseIsPressed || touchStarted.length > 0)) {
-            this.owner = getCurrentPlayer(); // determine player from getPlayer() function. getPlayer() will return the player object from the db.
-            this.show = true;
-            flag_boardChange = true;
+            this.click();
           }
-          console.log("hey")
+          // console.log("hey")
         }
         let byteBox = this.lineId >> 8;
         let byteSide = this.lineId & 0x00FF;
@@ -447,9 +501,7 @@ class Line {
             line(this.x1, this.y1, this.x2, this.y2);
             // is the mouse pressed? click the line
             if (isGameReady && currentPlayerName == nickname && (mouseIsPressed || touchStarted.length > 0)) {
-              this.owner = getCurrentPlayer(); // determine player from getPlayer() function. getPlayer() will return the player object from the db.
-              this.show = true;
-              flag_boardChange = true;
+              this.click();
             }
           }
         }
@@ -492,9 +544,7 @@ class Line {
           line(this.x1, this.y1, this.x2, this.y2);
           if (isGameReady && currentPlayerName == nickname && (mouseIsPressed || touchStarted.length > 0)) {
             // debugger;
-            this.owner = getCurrentPlayer();
-            this.show = true;
-            flag_boardChange = true;
+            this.click();
           }
           // console.log("yo");
         }
@@ -518,9 +568,7 @@ class Line {
             line(this.x1, this.y1, this.x2, this.y2);
             if (isGameReady && currentPlayerName == nickname && (mouseIsPressed || touchStarted.length > 0)) {
               // debugger;
-              this.owner = getCurrentPlayer();
-              this.show = true;
-              flag_boardChange = true;
+              this.click();
             }
           }
         }
@@ -564,7 +612,6 @@ class Box {
   constructor(x, y, id, concatLineArr = true) {
     this.x = x;
     this.y = y;
-    let byteBox = id;
     this.top = new Line(x, y, x + dotSpacing, y, ((id << 8) | 0x00), true);
     this.right = new Line(x + dotSpacing, y, x + dotSpacing, y + dotSpacing, ((id << 8) | 0x01), false);
     this.bottom = new Line(x + dotSpacing, y + dotSpacing, x, y + dotSpacing, ((id << 8) | 0x02), true);
@@ -626,7 +673,7 @@ class Box {
     if (this.owner == null) {
       return;
     }
-    for (let x = 0; x < dotSpacing; x += dotSpacing / 20) {
+    for (let x = 0; x < dotSpacing; x += dotSpacing / 12) {
       stroke(this.owner.color);
       strokeWeight(2);
       line(this.x, this.y + x, this.x + x, this.y);
@@ -662,10 +709,6 @@ function updateGame() {
   }
   let turnEnd = true;
   synchronizeBoxSides();
-  if (checkEndOfGameStatus()) {
-    sessionEnded = true;
-    return;
-  }
   let lastCapturedBox = getLastCapturedBox();
   if (lastCapturedBox != null) {
     lastCapturedBox.lastCaptured = false;
@@ -715,27 +758,16 @@ function checkForNickname() {
 }
 
 function setListener(gameId) {
-  console.log("here")
+  // console.log("here")
   listener = db.collection(basePath).doc(`${gameId}`)
     .onSnapshot((doc) => {
       if (!isGameReady && doc.data().player1 != "" && doc.data().player2 != "") {
-        /* if (isHost) {
-          // set owners[0], the first player is always host. only set if not already set
-          if (owners[0] == null) {
-            owners[0] = parseOwner(doc.data().owner1);
-          }
-          // if the second player has joined, and the second player has not been set
-          if (owners[1] == null) {
-            owners[1] = new Owner(doc.data().player2, color(random(0, 255), random(0, 255), random(0, 255)));
-          }
-        } */
-        // if (isHost) {
-          console.log("Player 1: ", doc.data().player1);
-          console.log("Player 2: ", doc.data().player2);
-          owners[0] = new Owner(doc.data().player1, color(random(0, 255), random(0, 255), random(0, 255))); //parseOwner(doc.data().owner1);
-          if (!isHost)
-            currentPlayerName = doc.data().player1;
-            owners[1] = new Owner(doc.data().player2, color(random(0, 255), random(0, 255), random(0, 255)));
+        console.log("Player 1: ", doc.data().player1);
+        console.log("Player 2: ", doc.data().player2);
+        owners[0] = new Owner(doc.data().player1, color(random(0, 255), random(0, 255), random(0, 255))); //parseOwner(doc.data().owner1);
+        if (!isHost)
+          currentPlayerName = doc.data().player1;
+          owners[1] = new Owner(doc.data().player2, color(random(0, 255), random(0, 255), random(0, 255)));
         isGameReady = true;
         if (isHost) {
           document.getElementById("opponentName").innerText = "Playing against: " + doc.data().player2;
@@ -743,27 +775,47 @@ function setListener(gameId) {
       } else if (!isGameReady) {
         return
       } else {
-        console.log("Current data: ", doc.data());
+        if (debugging)
+          console.debug("Current data: ", doc.data());
         // update the local board
         boxesStr = doc.data().boxes;
-        console.log("boxesStr: ", boxesStr);
+        if (debugging)
+          console.debug("boxesStr: ", boxesStr);
         boxes = [];
         lines = [];
         
         boxes = parseBoxesString(boxesStr);
         currentPlayerName = doc.data().currentPlayerName;
-        console.group("incoming");
+        console.groupCollapsed("incoming");
         console.log(boxes);
         console.groupEnd();
-        // update the display - Do in drawBoard();
-        /* for (let i = 0; i < 9; i++) {
-        document.getElementById(i).innerText = boardArr[i];
-        } */
+        if (autoMode) {
+          // get randomLine
+          clickRandomLine();
+        }
+        if (debugging) {
+          boxesCaptured = 0;
+          for (let i = 0; i < boxes.length; i++) {
+            if (boxes[i].owner != null) {
 
-        // check for a winner
-        // drawBoard();
-        // checkEndOfGameStatus();
-        // TODO
+              console.log(++boxesCaptured); // increment first, then log?
+            }
+          }
+          if (boxesCaptured == 14 && flag_allowDebugger)
+            debugger;
+        }
+        let winner = checkEndOfGameStatus();
+        if (winner == null) {
+          setTimeout(() => {
+            alert("It's a tie!");
+            //return true;
+          }, 1000);
+        } else if (winner != null && winner != false) {
+          setTimeout(() => {
+            alert(winner.name + " wins with " + winner.score + " boxes!!");
+            //return true;
+          }, 1000);
+        }
       }
     });
 }
@@ -771,7 +823,8 @@ function setListener(gameId) {
 function parseBoxesString(boxesString) {
   let boxs = [];
   let json = JSON.parse(boxesString);
-  console.log("json: ",json)
+  if (debugging)
+    console.debug("json: ",json)
   for (let i = 0; i < json.length; i++) {
     let box = parseBox(json[i])
     boxs.push(box);
@@ -781,7 +834,8 @@ function parseBoxesString(boxesString) {
 
 function parseBox(jsonData) {
   //let jsonData = JSON.parse(jsonDataStr);
-  console.log("Boxes: ", jsonData)
+  if (debugging)
+    console.debug("Boxes: ", jsonData)
   let x = jsonData.id % (gridSize - 1);
   let y = Math.floor(jsonData.id / (gridSize - 1));
   // debugger;
@@ -807,7 +861,7 @@ function parseBox(jsonData) {
   box.captured = jsonData.captured;
   return box;
 }
-// not parsing the owner correctly. check owner of lines when they are clicked
+
 function parseLine(jsonData, id, side) {
   let line = null;
   let boardX = id % (gridSize - 1);
@@ -825,22 +879,25 @@ function parseLine(jsonData, id, side) {
   } else if (side == 3) { // LEFT
     line = new Line(parseX, parseY + dotSpacing, parseX, parseY, jsonData.lineId, false);
   } 
-  console.log("LINE jsonData: ", jsonData)
+  if (debugging)
+    console.debug("LINE jsonData: ", jsonData)
   line.show = jsonData.show;
   // if (line.show)
     // debugger;
-  console.group("parseLine -- owner info")
-  console.log("jsonData.owner: ", jsonData.owner);
-  console.log("owners[0].name: ", owners[0].name);
-  console.log("owners[1].name: ", owners[1].name);
-  console.groupEnd();
+  if (debugging) {
+    console.groupCollapsed("parseLine -- owner info")
+    console.debug("jsonData.owner: ", jsonData.owner);
+    console.debug("owners[0].name: ", owners[0].name);
+    console.debug("owners[1].name: ", owners[1].name);
+    console.groupEnd();
+  }
   if (jsonData.owner != null) {
     if (jsonData.owner.name == owners[0].name) {
       line.owner = owners[0];
     }
     else if (jsonData.owner.name == owners[1].name) {
       line.owner = owners[1];
-      console.log("other owner")
+      // console.log("other owner")
     }
   }
   return line;
@@ -848,14 +905,14 @@ function parseLine(jsonData, id, side) {
 
 function parseOwner(jsonDataStr) {
   let jsonData = JSON.parse(jsonDataStr);
-  console.debug(jsonData);
+  if (debugging)
+    console.debug(jsonData);
   window.jsonData = jsonData;
   let name = jsonData.name;
   let ownerColor = color(jsonData.color.levels[0], jsonData.color.levels[1], jsonData.color.levels[2]);
   return new Owner(name, ownerColor);
 }
 
-// TODO: Fix invalid data. Unsupported Field value, custom Owner object. Found in field owner1
 function getOwnerFromName(name) {
   let owner = null;
   for (let i = 0; i < owners.length; i++) {
@@ -881,6 +938,8 @@ function hostGame() {
   isHost = true;
   checkForNickname();
   resetBoard();
+  if (flag_allowAutoMode)
+    document.getElementById("autoMode").hidden = false;
   owners[0] = new Owner(nickname, color(random(0, 255), random(0, 255), random(0, 255)));
   currentPlayerName = nickname;
   let pin = Math.floor(Math.random() * 9000) + 1000;
@@ -919,17 +978,12 @@ function joinGame() {
     } else {
       // the goal is to check for an existing document with the gameid. Then make a snapshot listener for the specific document.
       // always update the local board. only update the firebase board when the local board changes.
-      /* db.collection("games").get().then((querySnapshot) => {
-      querySnapshot.forEach((doc) => {
-
-          console.log(`${doc.id} => ${doc.data()}`);
-      });
-      }); */
-      var docRef = db.collection(basePath).doc(gameId);
+      let docRef = db.collection(basePath).doc(gameId);
 
       docRef.get().then((doc) => {
         if (doc.exists) {
-          console.log("Document data:", doc.data());
+          if (debugging)
+            console.debug("Document data:", doc.data());
           alert("Joining Game")
           db.collection(basePath).doc(gameId).update({
             player2: nickname,
