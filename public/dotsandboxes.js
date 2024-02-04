@@ -368,9 +368,9 @@ function checkEndOfGameStatus() {
     console.warn("capturedBoxes: " + capturedBoxes);
     return undefined;
   }
-  if (owners[0].score == (gridSize - 1)*(gridSize-1) && owners[0].score == (gridSize - 1)*(gridSize-1)) {
-    winner = null;
-  } else if (owners[0].score > owners[1].score) {
+  // if (owners[0].score == (gridSize - 1)*(gridSize-1) && owners[0].score == (gridSize - 1)*(gridSize-1)) {
+  //   winner = null;
+  if (owners[0].score > owners[1].score) {
     winner = owners[0];
   } else if (owners[1].score > owners[0].score) {
     winner = owners[1];
@@ -779,9 +779,16 @@ function updateGame() {
   console.log(boxes);
   console.groupEnd();
   // console.log(boxesString)
+  let playerScores = [0, 0];
+  if (owners[0] != null && owners[1] != null) {
+    playerScores[0] = owners[0].score;
+    playerScores[1] = owners[1].score;
+  }
   db.collection("game/dotsandboxes/games").doc(gameId).update({
     currentPlayerName: currentPlayerName,
-    boxes: boxesString
+    boxes: boxesString,
+    player1Score: playerScores[0],
+    player2Score: playerScores[1]
   });
 }
 
@@ -853,6 +860,8 @@ function setListener(gameId) {
           if (boxesCaptured == 14 && flag_allowDebugger)
             debugger;
         }
+        owners[0].score = doc.data().player1Score;
+        owners[1].score = doc.data().player2Score;
         let winner = checkEndOfGameStatus();
         if (winner == undefined)
           return;
