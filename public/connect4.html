@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="index.css"/>
+  <link rel="stylesheet" href="connect4.css"/>
+  <style>
+    /* Make the board take up 80 percent of the page, starting from the top */
+    
+  </style>
+</head>
+<body>
+  <main class="p5_wrapper">
+
+  </main>
+  <div id="gamecontrols">
+    <div id="buttons">
+      <button id="hostButton" onclick="hostGame()">Start Game</button>
+      <button id="joinButton" onclick="joinGame()">Join Game</button>
+      <!-- <button id="autoMode" onclick="startAutobot()" hidden>autoMode</button> -->
+    </div>
+    <div id="information">
+      <p class="info" id="nickname"></p>
+      <p class="info" id="opponentName"></p>
+      <p class="info" id="gameId"></p>
+    </div>
+  </div>
+  <!-- Insert this script at the bottom of the HTML, but before you use any Firebase services -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="setupFireBase.js" type="module"></script>
+  <script src="lib/p5.js"></script>
+  <!-- <script src="DetailedError.js"></script> -->
+  <script src="connect4.js"></script>
+</body>
+</html>

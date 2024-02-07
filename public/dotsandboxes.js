@@ -1,3 +1,5 @@
+/* Copyright (c) 2024 by Joshua Miller */
+
 console.log("Welcome to Dots and Boxes, Version 1.1");
 
 var isMobile = true;
