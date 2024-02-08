@@ -4,6 +4,15 @@ console.log('connecc4.js loaded, v0.0.1');
 
 /// Vars
 var isMobile = false;
+var boardWidth, boardHeight;
+var translateX, translateY;
+var columns = 7;
+var rows = 6;
+var padding = 20;
+var debugging = false;
+var boardSet = false;
+var board = [];
+var owners = [null, null];
 
 function setup() { // Todo: declare the vars used in this function
   isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -20,13 +29,16 @@ function setup() { // Todo: declare the vars used in this function
   line(0, 0, width, height);
   frameRate(60);
   console.debug(width, height)
-  boardWidth = width - (padding * 2) - dotDiameter * 2; // subtraxt the diameter of the dots, twice. ones for each side horizontally
-  baordHeight = height - (padding * 2) - dotDiameter * 2; // subtraxt the diameter of the dots, twice. ones for each side vertically
-  dotSpacing = boardWidth / (gridSize - 1);
-  translateX = padding + dotDiameter;
-  translateY = padding + dotDiameter;
+  boardWidth = width - (padding * 2); //- dotDiameter * 2; // subtraxt the diameter of the dots, twice. ones for each side horizontally
+  baordHeight = height - (padding * 2); //- dotDiameter * 2; // subtraxt the diameter of the dots, twice. ones for each side vertically
+  // dotSpacing = boardWidth / (gridSize - 1);
+  translateX = padding; // + dotDiameter;
+  translateY = padding; // + dotDiameter;
 }
 
 function draw() {
-  
+  if (!boardSet) {
+    setupBoard();
+  }
+  drawBoard();
 }

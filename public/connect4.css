@@ -1,1 +1,8 @@
 /* Copyright (c) 2024 by Joshua Miller */
+
+.p5_wrapper {
+    margin-top: 20px;
+    display: grid;
+    justify-content: center;
+    align-content: center;
+}
