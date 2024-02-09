@@ -65,3 +65,5 @@ node_modules/
 # dotenv environment variables file
 .env
 public/brainstorming.txt
+public/p5js.org/assets/css/all.css%3Fv=3bf18a
+public/p5js.org/assets/css/all.css
