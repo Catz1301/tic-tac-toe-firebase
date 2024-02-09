@@ -10,7 +10,7 @@ import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase
 // // Required for side-effects
 // import "firebase/firestore";
 
-// TODO: Add SDKs for Firebase products that you want to use
+// DONE-TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration

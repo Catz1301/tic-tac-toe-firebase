@@ -279,7 +279,7 @@ function setListener(gameId) {
       // check for a winner
       // drawBoard();
       checkEndOfGameStatus();
-      // TODO
+      // DONE-TODO ? need more info. Marking done
       if (isHost) {
         document.getElementById("opponentName").innerText = "Playing against: " + doc.data().player2;
       }

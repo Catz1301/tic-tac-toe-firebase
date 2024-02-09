@@ -40,7 +40,7 @@ function setup() {
     createCanvas(windowWidth, windowWidth);
   else
     createCanvas(600, 600);
-  pixelDensity(5);
+  // pixelDensity(5);
   background(153);
   displayDensity(1);
   if (debugging) {
@@ -179,7 +179,7 @@ function regenerateColors() {
 }
 
 function setupBoard() {
-  // TODO: Set up vars and call stuff
+  // DONE-TODO: Set up vars and call stuff
   boardSet = true;
   let idStart = 0;
   for (let y = 0; y < gridSize - 1; y++) {
@@ -379,9 +379,7 @@ function checkEndOfGameStatus() {
   } else {
     // noLoop();
   }
-  // TODO: scores aren't syncing up, thats an issue.
   return winner;
-  // return true;
 }
 
 function clickRandomLine() {
