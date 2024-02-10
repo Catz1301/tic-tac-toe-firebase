@@ -1,8 +1,9 @@
 /* Copyright (c) 2024 by Joshua Miller */
 const version = "0.1.0"
 console.log('connect4.js loaded, v' + version);
-// TODO: Add Firebase integration
-// TODO: Add a way to check for a win
+// TODO: PRIORITY 1: Add Firebase integration
+// TODO: PRIORITY 2: Add a way to check for a win
+// TODO: PRIORITY 3: Fix scaling issues with board (probably through height)
 /// Vars
 var isMobile = false;
 var boardWidth;
@@ -16,6 +17,10 @@ var boardSet = false;
 var board = [];
 var owners = [null, null];
 var isGameReady = false;
+var basePath = "game/connect4/games";
+var gameId;
+var isHost = false;
+var sessionEnded = false;
 var cellWidth;
 var cellHeight;
 var boardColor;
@@ -171,6 +176,10 @@ function findLowestEmptyRow(column) {
 }
 
 function makeMove(column) {
+  if (!isGameReady)
+    return;
+  if (currentPlayerName != nickname)
+    return;
   if (board[column] == null) {
     let row = findLowestEmptyRow(column);
     if (row != -1) {
@@ -202,6 +211,7 @@ class Token {
     this.y = this.startingRow;
     this.width = cellWidth;
     this.height = cellHeight;
+    this.checked = false; 
   }
 
   advanceAnimation() {
@@ -228,13 +238,45 @@ class Token {
     token.row = JSONData.row;
     token.startingRow = 0; // XXX it's hardcoded in constructor, probably don't even need to redeclare, tbh
     token.animating = JSONData.animating;
-    token.x = JSONData.x; // to avoid more scaling issues, don't use JSONData
-    token.y = JSONData.y; // to avoid more scaling issues, don't use JSONData
-    token.width = JSONData.width; // to avoid more scaling issues, don't use JSONData
-    token.height = JSONData.height; // to avoid more scaling issues, don't use JSONData
+    token.x = token.column * cellWidth; // 
+    token.y = token.row * cellHeight; // BUG fails to animate properly. For now, use token.row. FIX: separate animation position from actual position. (animate locally) or AnimationData. AnimationData would have currentFrame, stepsPerFrame (pixels to move per frame), finalFramePosition (would be based on cellHeight locally) or keep a list of tokens currently in animation state, and don't bother those tokens.
+    token.width = cellWidth;
+    token.height = cellHeight;
+    token.checked = JSONData.checked;
     return token;
   }
 }
+
+
+function checkSurroundings(layer, token) {
+  if (layer == 4) {
+    let winner = token.owner.name;
+    return;
+  }
+
+  if (token)
+
+  // keep out of this function? go over again. Too tired to figure this out.
+  for (let i = 0; i < board.length; i++) {
+    if (layer == 0)
+      token.checked = false;
+    if (!token.checked) {
+      token.checked = true;
+      checkSurroundings(++layer, board[i])
+    }
+  }
+}
+
+function resetBoard() {
+  for (var i = 0; i < columns * rows; i++) {
+    board[i] = null;
+  }
+  boardSet = false;
+}
+
+///////////////////////////
+// firebase stuff
+///////////////////////////
 
 function updateBoard() {
   if (!isGameReady) {
@@ -247,4 +289,152 @@ function updateBoard() {
     currentPlayerName = owners[0].name;
 
   // TODO: Send board off to firestore.
+  db.collection(basePath).doc(gameId).update({
+    board: JSON.stringify(board),
+    currentPlayerName,
+  });
+}
+
+function checkForNickname() {
+  var nickname = localStorage.getItem("nickname");
+  if (nickname == null) {
+    nickname = prompt("Please enter a nickname");
+    if (nickname == "") {
+      alert("Your nickname cannot be empty.");
+      checkForNickname();
+    } else {
+      localStorage.setItem("nickname", nickname);
+    }
+  }
+  window.nickname = nickname;
+  document.getElementById("nickname").innerText = "Nickname: " + nickname;
+}
+
+function setListener(gameId) {
+  // console.log("here")
+  listener = db.collection(basePath).doc(`${gameId}`)
+    .onSnapshot((doc) => {
+      if (debugging)
+        console.debug("Current data: ", doc.data());
+
+      if (!isGameReady) {
+        if (doc.data().owner2 != null) {
+          isGameReady = true;
+          if (isHost)
+            owners[1] = Owner.parse(JSON.parse(doc.data().owner2));
+          document.getElementById("opponentName").innerText = "Opponent: " + doc.data().player2;
+          document.getElementById("gameId").innerText = "Game ID: " + gameId;
+          document.getElementById("hostButton").style.display = "none";
+          document.getElementById("joinButton").style.display = "none";
+        }
+      }
+
+      if (isGameReady) {
+        if (doc.data().board != null) {
+          if (debugging) {
+            console.debug("Board data: ", doc.data().board);
+          }
+          
+          // We don't already change the current player locally.
+          if (doc.data().currentPlayerName != null) {
+            currentPlayerName = doc.data().currentPlayerName;
+          }
+          let newBoard = JSON.parse(doc.data().board);
+          console.dir(newBoard); 
+          for (let i = 0; i < board.length; i++) {
+            if (newBoard[i] != null) {
+              let token = Token.parse(newBoard[i]);
+              
+              newBoard[i] = token;
+            }
+          }
+          board = newBoard;
+        }
+      
+      }
+    }
+    );
+}
+
+function hostGame() {
+  isHost = true;
+  checkForNickname();
+  resetBoard();
+  /* if (flag_allowAutoMode)
+    document.getElementById("autoMode").hidden = false; */
+  owners[0] = new Owner(nickname, true);
+  currentPlayerName = nickname;
+  let pin = Math.floor(Math.random() * 9000) + 1000;
+  gameId = pin.toString();
+  db.collection(basePath).doc(pin.toString()).set({
+    player1: nickname,
+    player2: "",
+    "board": JSON.stringify(board),
+    "owner1": JSON.stringify(owners[0]),
+    "owner2": null,
+    currentPlayerName
+  });
+  sessionEnded = false;
+  setListener(gameId.toString());
+  document.getElementById("hostButton").style.display = "none";
+  document.getElementById("joinButton").style.display = "none";
+  document.getElementById("opponentName").innerText = "Waiting for opponent...";
+  document.getElementById("gameId").innerText = "Game ID: " + pin;
+}
+
+function joinGame() {
+  checkForNickname();
+  resetBoard();
+  // get the game id from the user
+  // get the game from firebase
+  // display the game id
+  // hide the join game button
+  // hide the host game button
+  gameId = prompt("Please enter the game id");
+  if (gameId != null && gameId.length == 4) {
+    // check to see if letters are in the game id
+    if (gameId.match(/[a-z]/i)) {
+      alert("Please enter a valid game id");
+      joinGame(); // prolly a mem leak here. idk how to fix it
+    } else {
+      // the goal is to check for an existing document with the gameid. Then make a snapshot listener for the specific document.
+      // always update the local board. only update the firebase board when the local board changes.
+      let docRef = db.collection(basePath).doc(gameId);
+
+      docRef.get().then((doc) => {
+        if (doc.exists) {
+          if (debugging)
+            console.debug("Document data:", doc.data());
+          alert("Joining Game")
+          owners[1] = new Owner(nickname, false);
+          owners[0] = Owner.parse(JSON.parse(doc.data().owner1));
+          db.collection(basePath).doc(gameId).update({
+            player2: nickname,
+            owner2: JSON.stringify(owners[1])
+          });
+          if (debugging) {
+            console.dir(doc.data());
+            console.dir(doc);
+          }
+          document.getElementById("opponentName").innerText = "Playing against: " + owners[0].name;
+          document.getElementById("hostButton").style.display = "none";
+          document.getElementById("joinButton").style.display = "none";
+          // Set up a listener for the game
+          setListener(gameId);
+          isHost = false; 
+          // currentPlayerName =
+            // sessionEnded = false;
+        } else {
+          // doc.data() will be undefined in this case
+          console.log("No such document!");
+          alert("No active game with that id");
+        }
+      }).catch((error) => {
+        console.error("Error getting document:", error);
+        alert("There was an error retrieving the game. Check the console for more details.")
+      });
+
+    }
+  }
+
 }
