@@ -1,8 +1,7 @@
 /* Copyright (c) 2024 by Joshua Miller */
-const version = "0.1.0"
+const version = "0.1.1"
 console.log('connect4.js loaded, v' + version);
-// TODO: PRIORITY 1: Add Firebase integration
-// TODO: PRIORITY 2: Add a way to check for a win
+// TODO: PRIORITY 1: Add a way to check for a win
 // TODO: PRIORITY 3: Fix scaling issues with board (probably through height)
 /// Vars
 var isMobile = false;
@@ -26,6 +25,7 @@ var cellHeight;
 var boardColor;
 var currentPlayerName;
 var animationSpeed = 5;
+var mode = 4; // 4 in a row
 
 var flag_updateBoard = false;
 
@@ -130,6 +130,14 @@ function setupBoard() {
   }
   boardSet = true;
 }
+
+function resetBoard() {
+  for (var i = 0; i < columns * rows; i++) {
+    board[i] = null;
+  }
+  boardSet = false;
+}
+
 
 function drawGrid() {
   var cellWidth = boardWidth / columns;
@@ -247,31 +255,78 @@ class Token {
   }
 }
 
-
-function checkSurroundings(layer, token) {
-  if (layer == 4) {
-    let winner = token.owner.name;
-    return;
-  }
-
-  if (token)
-
-  // keep out of this function? go over again. Too tired to figure this out.
-  for (let i = 0; i < board.length; i++) {
-    if (layer == 0)
-      token.checked = false;
-    if (!token.checked) {
-      token.checked = true;
-      checkSurroundings(++layer, board[i])
+function getHorizontalWinner() {
+  for (let row = 0; row < rows; row++) {
+    for (let column = 0; column < columns - (columns - mode); column++) { // minus 3 because we're checking 4 in a row, and we don't want to go out of bounds
+      let token = board[row * columns + column];
+      if (token != null) {
+        if (board[row * columns + column + 1] == null || board[row * columns + column + 2] == null || board[row * columns + column + 3] == null)
+          continue;
+        if (token.owner == board[row * columns + column + 1].owner && token.owner == board[row * columns + column + 2].owner && token.owner == board[row * columns + column + 3].owner) {
+          return token.owner;
+        }
+      }
     }
   }
+  return null;
 }
 
-function resetBoard() {
-  for (var i = 0; i < columns * rows; i++) {
-    board[i] = null;
+function getVerticalWinner() {
+  for (let column = 0; column < columns; column++) {
+    for (let row = 0; row < rows - (rows - mode); row++) {
+      let token = board[row * columns + column];
+      if (token != null) {
+        if (board[(row + 1) * columns + column] == null || board[(row + 2) * columns + column] == null || board[(row + 3) * columns + column] == null)
+          continue;
+        if (token.owner == board[(row + 1) * columns + column].owner && token.owner == board[(row + 2) * columns + column].owner && token.owner == board[(row + 3) * columns + column].owner) {
+          return token.owner;
+        }
+      }
+    }
   }
-  boardSet = false;
+  return null;
+}
+
+function getDiagonalWinner() {
+  for (let row = 0; row < rows - (rows - mode); row++) {
+    for (let column = 0; column < columns - (columns - mode); column++) {
+      let token = board[row * columns + column];
+      if (token != null) {
+        if (board[(row + 1) * columns + column + 1] == null || board[(row + 2) * columns + column + 2] == null || board[(row + 3) * columns + column + 3] == null)
+          continue;
+        if (token.owner == board[(row + 1) * columns + column + 1].owner && token.owner == board[(row + 2) * columns + column + 2].owner && token.owner == board[(row + 3) * columns + column + 3].owner) {
+          return token.owner;
+        }
+      }
+    }
+  }
+  for (let row = 0; row < rows - (rows - mode); row++) {
+    for (let column = columns - 1; column > (columns - mode - 1); column--) {
+      let token = board[row * columns + column];
+      if (token != null) {
+        if (board[(row + 1) * columns + column - 1] == null || board[(row + 2) * columns + column - 2] == null || board[(row + 3) * columns + column - 3] == null)
+          continue;
+        if (token.owner == board[(row + 1) * columns + column - 1].owner && token.owner == board[(row + 2) * columns + column - 2].owner && token.owner == board[(row + 3) * columns + column - 3].owner) {
+          return token.owner;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function getWinner() { // TODO: PRIORITY 1: Fix this function and functiins it calls
+  let winner = null;
+  winner = getHorizontalWinner();
+  if (winner != null)
+    return winner;
+  winner = getVerticalWinner();
+  if (winner != null)
+    return winner;
+  winner = getDiagonalWinner();
+  if (winner != null)
+    return winner;
+  return winner;
 }
 
 ///////////////////////////
@@ -288,7 +343,11 @@ function updateBoard() {
   else
     currentPlayerName = owners[0].name;
 
-  // TODO: Send board off to firestore.
+  let winner = getWinner();
+  if (winner != null) {
+    sessionEnded = true;
+    alert(winner.name + " wins!");
+  }
   db.collection(basePath).doc(gameId).update({
     board: JSON.stringify(board),
     currentPlayerName,
