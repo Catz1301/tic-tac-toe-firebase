@@ -1,7 +1,6 @@
 /* Copyright (c) 2024 by Joshua Miller */
-const version = "0.1.1"
+const version = "1.0.0"
 console.log('connect4.js loaded, v' + version);
-// TODO: PRIORITY 1: Add a way to check for a win
 // TODO: PRIORITY 3: Fix scaling issues with board (probably through height)
 /// Vars
 var isMobile = false;
@@ -262,7 +261,7 @@ function getHorizontalWinner() {
       if (token != null) {
         if (board[row * columns + column + 1] == null || board[row * columns + column + 2] == null || board[row * columns + column + 3] == null)
           continue;
-        if (token.owner == board[row * columns + column + 1].owner && token.owner == board[row * columns + column + 2].owner && token.owner == board[row * columns + column + 3].owner) {
+        if (token.owner.name == board[row * columns + column + 1].owner.name && token.owner.name == board[row * columns + column + 2].owner.name && token.owner.name == board[row * columns + column + 3].owner.name) {
           return token.owner;
         }
       }
@@ -278,7 +277,7 @@ function getVerticalWinner() {
       if (token != null) {
         if (board[(row + 1) * columns + column] == null || board[(row + 2) * columns + column] == null || board[(row + 3) * columns + column] == null)
           continue;
-        if (token.owner == board[(row + 1) * columns + column].owner && token.owner == board[(row + 2) * columns + column].owner && token.owner == board[(row + 3) * columns + column].owner) {
+        if (token.owner.name == board[(row + 1) * columns + column].owner.name && token.owner.name == board[(row + 2) * columns + column].owner.name && token.owner.name == board[(row + 3) * columns + column].owner.name) {
           return token.owner;
         }
       }
@@ -294,7 +293,7 @@ function getDiagonalWinner() {
       if (token != null) {
         if (board[(row + 1) * columns + column + 1] == null || board[(row + 2) * columns + column + 2] == null || board[(row + 3) * columns + column + 3] == null)
           continue;
-        if (token.owner == board[(row + 1) * columns + column + 1].owner && token.owner == board[(row + 2) * columns + column + 2].owner && token.owner == board[(row + 3) * columns + column + 3].owner) {
+        if (token.owner.name == board[(row + 1) * columns + column + 1].owner.name && token.owner.name == board[(row + 2) * columns + column + 2].owner.name && token.owner.name == board[(row + 3) * columns + column + 3].owner.name) {
           return token.owner;
         }
       }
@@ -306,7 +305,7 @@ function getDiagonalWinner() {
       if (token != null) {
         if (board[(row + 1) * columns + column - 1] == null || board[(row + 2) * columns + column - 2] == null || board[(row + 3) * columns + column - 3] == null)
           continue;
-        if (token.owner == board[(row + 1) * columns + column - 1].owner && token.owner == board[(row + 2) * columns + column - 2].owner && token.owner == board[(row + 3) * columns + column - 3].owner) {
+        if (token.owner.name == board[(row + 1) * columns + column - 1].owner.name && token.owner.name == board[(row + 2) * columns + column - 2].owner.name && token.owner.name == board[(row + 3) * columns + column - 3].owner.name) {
           return token.owner;
         }
       }
@@ -315,7 +314,7 @@ function getDiagonalWinner() {
   return null;
 }
 
-function getWinner() { // TODO: PRIORITY 1: Fix this function and functiins it calls
+function getWinner() {
   let winner = null;
   winner = getHorizontalWinner();
   if (winner != null)
@@ -343,11 +342,6 @@ function updateBoard() {
   else
     currentPlayerName = owners[0].name;
 
-  let winner = getWinner();
-  if (winner != null) {
-    sessionEnded = true;
-    alert(winner.name + " wins!");
-  }
   db.collection(basePath).doc(gameId).update({
     board: JSON.stringify(board),
     currentPlayerName,
@@ -379,12 +373,13 @@ function setListener(gameId) {
       if (!isGameReady) {
         if (doc.data().owner2 != null) {
           isGameReady = true;
-          if (isHost)
+          if (isHost) {
             owners[1] = Owner.parse(JSON.parse(doc.data().owner2));
-          document.getElementById("opponentName").innerText = "Opponent: " + doc.data().player2;
-          document.getElementById("gameId").innerText = "Game ID: " + gameId;
-          document.getElementById("hostButton").style.display = "none";
-          document.getElementById("joinButton").style.display = "none";
+            document.getElementById("opponentName").innerText = "Opponent: " + doc.data().player2;
+            document.getElementById("gameId").innerText = "Game ID: " + gameId;
+            document.getElementById("hostButton").style.display = "none";
+            document.getElementById("joinButton").style.display = "none";
+          }
         }
       }
 
@@ -408,6 +403,13 @@ function setListener(gameId) {
             }
           }
           board = newBoard;
+          let winner = getWinner();
+          if (winner != null) {
+            sessionEnded = true;
+            setTimeout(() => {
+              alert(winner.name + " wins!");
+            }, 1000);
+          }
         }
       
       }
