@@ -1,7 +1,7 @@
 /* Copyright (c) 2024 by Joshua Miller */
 const version = "1.0.0"
 console.log('connect4.js loaded, v' + version);
-// TODO: PRIORITY 3: Fix scaling issues with board (probably through height)
+// WONTFIX: Fix scaling issues with board (probably through height)
 /// Vars
 var isMobile = false;
 var boardWidth;
@@ -55,13 +55,13 @@ function setup() { // Todo: declare the vars used in this function
   }
   line(0, 0, width, height);
   frameRate(60);
-  console.debug(width, height)
+  console.debug(width, height);
   boardWidth = width - (padding * 2);
-  boardHeight = height - (padding * 2);
+  boardHeight = boardWidth; //height - ((padding * 2) + ((height / 6) - (width / 7)) );
   translateX = padding;
   translateY = padding;
+  cellHeight = boardHeight / rows; //boardHeight / rows;
   cellWidth = boardWidth / columns;
-  cellHeight = boardHeight / rows;
   boardColor = color(8, 229, 255);
   let versionInfo = version.split('.');
   var major = parseInt(versionInfo[0]);
@@ -139,8 +139,8 @@ function resetBoard() {
 
 
 function drawGrid() {
-  var cellWidth = boardWidth / columns;
-  var cellHeight = boardHeight / rows;
+  // var cellWidth = boardWidth / columns;
+  // var cellHeight = boardHeight / rows;
   stroke(boardColor);
   strokeWeight(4);
   for (let i = 0; i < columns + 1; i++) {
@@ -246,7 +246,7 @@ class Token {
     token.startingRow = 0; // XXX it's hardcoded in constructor, probably don't even need to redeclare, tbh
     token.animating = JSONData.animating;
     token.x = token.column * cellWidth; // 
-    token.y = token.row * cellHeight; // BUG fails to animate properly. For now, use token.row. FIX: separate animation position from actual position. (animate locally) or AnimationData. AnimationData would have currentFrame, stepsPerFrame (pixels to move per frame), finalFramePosition (would be based on cellHeight locally) or keep a list of tokens currently in animation state, and don't bother those tokens.
+    token.y = JSONData.y; // BUG fails to animate properly. For now, use token.row. FIX: separate animation position from actual position. (animate locally) or AnimationData. AnimationData would have currentFrame, stepsPerFrame (pixels to move per frame), finalFramePosition (would be based on cellHeight locally) or keep a list of tokens currently in animation state, and don't bother those tokens.
     token.width = cellWidth;
     token.height = cellHeight;
     token.checked = JSONData.checked;
@@ -364,7 +364,6 @@ function checkForNickname() {
 }
 
 function setListener(gameId) {
-  // console.log("here")
   listener = db.collection(basePath).doc(`${gameId}`)
     .onSnapshot((doc) => {
       if (debugging)
@@ -402,7 +401,24 @@ function setListener(gameId) {
               newBoard[i] = token;
             }
           }
-          board = newBoard;
+          for (let i = 0; i < board.length; i++) {
+            if (newBoard[i] != null) {
+              if (board[i] == null) {
+                board[i] = newBoard[i];
+              } else {
+                /* if (board[i].animating == true && newBoard[i].animating == true) {
+                  board[i] = newBoard[i];
+                } */
+                if (newBoard[i].animating == true && board[i].animating == true) {
+                  continue;
+                }
+                if (newBoard[i].animating == false && board[i].animating == true) {
+                  board[i] = newBoard[i];
+                }
+              }
+            }
+          }
+          // board = newBoard;
           let winner = getWinner();
           if (winner != null) {
             sessionEnded = true;
