@@ -26,7 +26,7 @@ var greenTokenImg;
 var currentPlayerName = "";
 var boardColorRed;
 var boardColorGreen;
-
+var crownColor;
 var startingTokensBlack = [
   1, 3, 5, 7, 8, 10, 12, 14, 17, 19, 21, 23
 ];
@@ -76,6 +76,7 @@ function setup() { // Todo: declare the vars used in this function
   cellWidth = boardWidth / columns;
   boardColorGreen = color(4, 187, 117); // original: (24, 217, 147)
   boardColorRed = color(207, 71, 2); // original: (237, 101, 2)
+  crownColor = color(215, 155, 19);
   let versionInfo = version.split('.');
   var major = parseInt(versionInfo[0]);
   var minor = parseInt(versionInfo[1]);
@@ -187,7 +188,11 @@ function updateBoard() {
   if (flag_manCaptured == true) {
     flag_manCaptured = false;
     flag_updateBoard = false;
-    return; // Not sure if this is the right choice, but for now, just return
+    if (flag_captureOnly) {
+      flag_captureOnly = false;
+      return;
+    }
+      // return; // Not sure if this is the right choice, but for now, just return
   }
 
   if (currentPlayerName == owners[1].name)
@@ -196,6 +201,65 @@ function updateBoard() {
     currentPlayerName = owners[1].name;
   // TODO: send off to firestore
   flag_updateBoard = false;
+}
+
+/**
+ * @function canCaptureMore returns whether the given token can capture any more tokens
+ * @param {Token} token 
+ * @returns {boolean}
+ */
+
+//FIXME: Fails to allow for double jump. Possible bug in Token.move function or in this function.
+function canCaptureMore(token) {
+  let index = (token.row * columns) + token.row;
+  let upperLeftSquare, upperRightSquare, lowerLeftSquare, lowerRightSquare;
+  if (token.row > 1) {
+    if (token.column < columns - 3) // columns starts at 0, - 1 for 7. -1 + 2 = 8, too much. - 2 + 2 = 7. 2 + 1 = 3
+      upperRightSquare = board[((token.row - 1) * columns) + token.column + 1];
+    else
+      upperRightSquare = -1;
+    if (token.column > 1)
+      upperLeftSquare = board[((token.row - 1) * columns) + token.column - 1];
+    else
+      upperLeftSquare = -1;
+  } else {
+    upperLeftSquare = -1;
+    upperRightSquare = -1;
+  }
+  if (token.row < rows - 3) {
+    if (token.column < columns - 3)
+      lowerRightSquare = board[((token.row + 1) * columns) + token.column + 1];
+    else
+      lowerRightSquare = -1;
+    if (token.column > 1)
+      lowerLeftSquare = board[((token.row + 1) * columns) + token.column -1];
+    else
+      lowerLeftSquare = -1
+  }
+
+  if (token.owner.name == owners[0].name && token.tokenType == TokenType.MAN) { // only go up
+    lowerLeftSquare = -1;
+    lowerRightSquare = -1;
+  }
+  if (token.owner.name == owners[1].name && token.tokenType == TokenType.MAN) {
+    upperLeftSquare = -1;
+    upperRightSquare = -1;
+  }
+
+  if (lowerLeftSquare == -1 && lowerRightSquare == -1 && upperLeftSquare == -1 && upperRightSquare == -1)
+    return false;
+  if (lowerLeftSquare != null && lowerLeftSquare != -1 && lowerLeftSquare.owner.name != token.owner.name)
+    return true;
+  else if (lowerRightSquare != null && lowerRightSquare != -1 && lowerRightSquare.owner.name != token.owner.name)
+    return true;
+  else if (upperLeftSquare != null && upperLeftSquare != -1 && upperLeftSquare.owner.name != token.owner.name)
+    return true;
+  else if (upperRightSquare != null && upperRightSquare != -1 && upperRightSquare.owner.name != token.name)
+    return true;
+  else {
+    console.log("No conditions match for >1 jump");
+    return false;
+  }
 }
 
 /// Classes
@@ -235,7 +299,7 @@ class Token {
     this.mandatoryMoveUpRight = false;
   }
 
-  selectIfMousePress() {
+  /* selectIfMousePress() {
     if ((mouseX > this.x && mouseX < this.x + cellWidth) &&
         (mouseY > this.y && mouseY < this.y + cellHeight)) {
           if (mouseIsPressed) {
@@ -243,8 +307,10 @@ class Token {
             this.selected = true;
           }
     }
-  }
-
+  } */
+// unknown people around here - at 13:21 on 2/24/23
+// probably bad drivers too.
+// dropped off package. GOODBYE.
   move() {
     if (currentPlayerName == owners[0].name) {
       if (this.selected && currentPlayerName == this.owner.name) {
@@ -261,6 +327,7 @@ class Token {
             console.log("mouse over mandatory upper left square");
             if (mouseIsPressed === true) {
               board[upperLeftCaptureSquare].captureMan();
+              flag_captureOnly = canCaptureMore(this);
               this.mandatoryMoveUpLeft = false;
               board[upperLeftMoveToSquare] = new Token(this.column - 2, this.row - 2, this.owner);
               board[(this.row * columns) + this.column] = null;
@@ -284,6 +351,7 @@ class Token {
                 console.log("Mouse over mandatory upper right jump spot")
             if (mouseIsPressed === true) {
               board[upperRightCaptureSquare].captureMan();
+              flag_captureOnly = canCaptureMore(this);
               this.mandatoryMoveUpRight = false;
               board[upperRightMoveToSquare] = new Token(this.column + 2, this.row - 2, this.owner);
               board[(this.row * columns) + this.column] = null;
@@ -360,7 +428,8 @@ class Token {
             console.log("mouse over mandatory lower left square");
             if (mouseIsPressed === true) {
               board[lowerLeftCaptureSquare].captureMan();
-              // sould check for more capturable men from this token here.
+              // should check for more capturable men from this token here.
+              flag_captureOnly = canCaptureMore(this);
               this.mandatoryMoveDownLeft = false;
               board[lowerLeftMoveToSquare] = new Token(this.column - 2, this.row + 2, this.owner);
               board[(this.row * columns) + this.column] = null;
@@ -379,6 +448,7 @@ class Token {
               (mouseY > (this.y + cellHeight) + cellHeight) && mouseY < ((this.y + cellHeight) + cellHeight) + cellHeight) {
             if (mouseIsPressed === true) {
               board[lowerRightCaptureSquare].captureMan();
+              flag_captureOnly = canCaptureMore(this);
               this.mandatoryMoveDownRight = false;
               board[lowerRightMoveToSquare] = new Token(this.column + 2, this.row + 2, this.owner);
               board[(this.row * columns) + this.column] = null;
