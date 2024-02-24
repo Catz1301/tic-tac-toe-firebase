@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 by Joshua Miller */
-const version = "0.0.1"
+const version = "0.0.3a"
 console.log('checkers.js loaded, v' + version);
 
 /// Vars
@@ -24,10 +24,11 @@ var cellHeight;
 var redTokenImg;
 var greenTokenImg;
 var currentPlayerName = "";
-var boardColor;
+var boardColorRed;
+var boardColorGreen;
 
 var startingTokensBlack = [
-   1, 3, 5, 7, 8, 10, 12, 14, 17, 19, 21, 23
+  1, 3, 5, 7, 8, 10, 12, 14, 17, 19, 21, 23
 ];
 var startingTokensWhite = [
   40, 42, 44, 46, 49, 51, 53, 55, 56, 58, 60, 62
@@ -39,6 +40,8 @@ const TokenType = {
 }
 
 var flag_updateBoard = false;
+var flag_manCaptured = false;
+var flag_captureOnly = true;
 
 /// Functions
 function preload() {
@@ -71,7 +74,8 @@ function setup() { // Todo: declare the vars used in this function
   translateY = padding;
   cellHeight = boardHeight / rows; //boardHeight / rows;
   cellWidth = boardWidth / columns;
-  boardColor = color(8, 229, 255);
+  boardColorGreen = color(4, 187, 117); // original: (24, 217, 147)
+  boardColorRed = color(207, 71, 2); // original: (237, 101, 2)
   let versionInfo = version.split('.');
   var major = parseInt(versionInfo[0]);
   var minor = parseInt(versionInfo[1]);
@@ -93,6 +97,9 @@ function draw() {
   background(29);
   drawBoard();
   drawTokens();
+  if (flag_updateBoard) {
+    updateBoard();
+  }
 }
 
 function setupBoard() {
@@ -127,22 +134,29 @@ function drawBoard() {
   for (let y = 0; y < rows; y++) {
     line(0, y * cellHeight, boardWidth, y * cellHeight);
   }
-  for (let x = 0; x < columns; x++) {
-    for (let y = 0; y < rows; y++) {
+  let debug_countBoardId = 0;
+  for (let y = 0; y < columns; y++) {
+    for (let x = 0; x < rows; x++) {
       if (x % 2 == 0 && y % 2 == 0) {
-        fill(24, 217, 147);
+        fill(boardColorGreen);
         rect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
       } else if (x % 2 == 1 && y % 2 == 1) {
-        fill(24, 217, 147);
+        fill(boardColorGreen);
         rect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
       } else if (x % 2 == 1 && y % 2 == 0) {
-        fill(237, 101, 2);
+        fill(boardColorRed);
         rect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
       } else if (x % 2 == 0 && y % 2 == 1) {
-        fill(237, 101, 2);
+        fill(boardColorRed);
         rect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
       }
+      fill(0)
+      if (debugging)
+      
+        text(debug_countBoardId + "", x * cellWidth + 5, y * cellHeight + 5, (x * cellWidth) + cellWidth - 5, (y * cellHeight) + cellHeight - 5);
+      debug_countBoardId++
     }
+
   }
 }
 
@@ -167,6 +181,21 @@ function getSelectedToken() {
     if (board[i] != null && board[i].selected)
       return board[i];
   }
+}
+
+function updateBoard() {
+  if (flag_manCaptured == true) {
+    flag_manCaptured = false;
+    flag_updateBoard = false;
+    return; // Not sure if this is the right choice, but for now, just return
+  }
+
+  if (currentPlayerName == owners[1].name)
+    currentPlayerName = owners[0].name;
+  else if (currentPlayerName == owners[0].name)
+    currentPlayerName = owners[1].name;
+  // TODO: send off to firestore
+  flag_updateBoard = false;
 }
 
 /// Classes
@@ -202,8 +231,8 @@ class Token {
     this.owner = owner;
     this.tokenType = TokenType.MAN;
     this.selected = false;
-    this.mandatoryMoveLeft = false;
-    this.mandatoryMoveRight = false;
+    this.mandatoryMoveUpLeft = false;
+    this.mandatoryMoveUpRight = false;
   }
 
   selectIfMousePress() {
@@ -217,58 +246,281 @@ class Token {
   }
 
   move() {
-    if (this.selected && currentPlayerName == this.owner.name) {
-      if (this.mandatoryMoveLeft) {
-        let upperLeftSquare = board[((this.row - 1) * columns) + (this.column - 1)];
-        if (mouseX > upperLeftSquare.x && mouseX < upperLeftSquare.x + cellWidth) {
-          if (mouseDown) {
-            upperLeftSquare.captureMan();
-            this.mandatoryMoveLeft = false;
+    if (currentPlayerName == owners[0].name) {
+      if (this.selected && currentPlayerName == this.owner.name) {
+        if (this.mandatoryMoveUpLeft) {
+          
+          if (this.row == 0 || this.row == 1 || this.column == 1)
+            return; // unmovable anyway if true.
+          let upperLeftCaptureSquare = ((this.row - 1) * columns) + (this.column - 1);
+          let upperLeftMoveToSquare = ((this.row - 2) * columns) + (this.column - 2);
+          if (board[upperLeftMoveToSquare] != null)
+            return; // unmovable anyway if true.
+          if ((mouseX > (this.x - cellWidth) - cellWidth && mouseX < (this.x - cellWidth)) &&
+              (mouseY > (this.y - cellHeight) - cellHeight) && mouseY < (this.y - cellHeight)) {
+            console.log("mouse over mandatory upper left square");
+            if (mouseIsPressed === true) {
+              board[upperLeftCaptureSquare].captureMan();
+              this.mandatoryMoveUpLeft = false;
+              board[upperLeftMoveToSquare] = new Token(this.column - 2, this.row - 2, this.owner);
+              board[(this.row * columns) + this.column] = null;
+              /* this.row = this.row - 2;
+              this.column = this.column - 2;
+              this.x = this.column * cellWidth;
+              this.y = this.row * cellHeight;
+              upperLefttMoveToSquare = Token.parse(JSON.parse(JSON.stringify(this)), this.owner); */
+              flag_updateBoard = true;
+            }
+          }
+        } else if (this.mandatoryMoveUpRight) {
+          if (this.row == 0 || this.row == 1 || this.column == columns - 3)
+            return; // unmovable anyway if true.
+          let upperRightCaptureSquare = ((this.row - 1) * columns) + (this.column + 1);
+          let upperRightMoveToSquare = ((this.row - 2) * columns) + (this.column + 2);
+          if (board[upperRightMoveToSquare] != null) 
+            return; // unmovable anyway if true.
+          if ((mouseX > (this.x + cellWidth) + cellWidth && mouseX < ((this.x + cellWidth) + cellWidth) + cellWidth) &&
+              (mouseY > (this.y - cellHeight) - cellHeight) && mouseY < (this.y - cellHeight)) {
+                console.log("Mouse over mandatory upper right jump spot")
+            if (mouseIsPressed === true) {
+              board[upperRightCaptureSquare].captureMan();
+              this.mandatoryMoveUpRight = false;
+              board[upperRightMoveToSquare] = new Token(this.column + 2, this.row - 2, this.owner);
+              board[(this.row * columns) + this.column] = null;
+              /* this.row = this.row - 2;
+              this.column = this.column + 2;
+              this.x = this.column * cellWidth;
+              this.y = this.row * cellHeight;
+              upperRightMoveToSquare = Token.parse(JSON.parse(JSON.stringify(this)), this.owner); */
+              flag_updateBoard = true;
+            }
+          }
+        } else {
+          // move up left
+          if ((mouseX > (this.x - cellWidth) && mouseX < (this.x)) &&
+          (mouseY > this.y - cellHeight && mouseY < this.y)) {
+            if (mouseIsPressed === true) {
+              if (this.row == 0 || this.column == 0)
+                return;
+
+              let upperLeftSquare = ((this.row - 1) * columns) + (this.column - 1);
+              // upperLeftSquare.captureMan();
+              // this.mandatoryMoveLeft = false;
+              board[upperLeftSquare] = new Token(this.column - 1, this.row - 1, this.owner);
+              board[(this.row * columns) + this.column] = null;
+              /* this.row = this.row - 1;
+              this.column = this.column - 1;
+              this.x = this.column * cellWidth;
+              this.y = this.row * cellHeight;
+              upperLeftSquare = Token.parse(JSON.parse(JSON.stringify(this)), this.owner) */
+              flag_updateBoard = true;
+            }
+          }
+
+          // move up right;
+          if ((mouseX > (this.x + cellWidth) && mouseX < (this.x + (cellWidth * 2))) && 
+          (mouseY > (this.y - cellHeight) && (mouseY < this.y))) {
+            console.log("mouse over upperRight Square")
+            
+            if (mouseIsPressed === true) {
+              if (this.row == 0 || this.column == columns - 1)
+                return;
+              
+              let upperRightSquare = ((this.row - 1) * columns) + (this.column + 1);
+              board[upperRightSquare] = new Token(this.column + 1, this.row - 1, this.owner);
+              board[(this.row * columns) + this.column] = null;
+              /* 
+              upperRightSquare
+              // upperRightSquare.captureMan();
+              // this.mandatoryMoveRight = false;
+              // upperRightSquare = this;
+              this.row = this.row - 1;
+              this.column = this.column + 1;
+              this.x = this.column * cellWidth;
+              this.y = this.row * cellHeight;
+              upperRightSquare = Token.parseWithOwner(JSON.parse(JSON.stringify(this)), this.owner) */
+              flag_updateBoard = true;
+              
+            }
           }
         }
-      } else if (this.mandatoryMoveRight) {
-        let upperRightSquare = board[((this.row - 1) * columns) + (this.column + 1)];
-        if (mouseX > upperRightSquare.x && mouseX < upperRightSquare.x + cellWidth) {
-          if (mouseDown) {
-            upperRightSquare.captureMan();
-            this.mandatoryMoveRight = false;
+      }
+    } else { // for player 2
+      if (this.selected && currentPlayerName == this.owner.name) {
+        if (this.mandatoryMoveDownLeft) {
+          
+          if (this.row == rows - 1  || this.row == rows - 2 || this.column == 1) // rows - 2 = 6 + 2
+            return; // unmovable anyway if true.
+          let lowerLeftCaptureSquare = ((this.row + 1) * columns) + (this.column - 1);
+          let lowerLeftMoveToSquare = ((this.row + 2) * columns) + (this.column - 2);
+          if (board[lowerLeftMoveToSquare] != null)
+            return; // unmovable anyway if true.
+          if ((mouseX > (this.x - cellWidth) - cellWidth && mouseX < (this.x - cellWidth)) &&
+              (mouseY > (this.y + cellHeight) + cellHeight) && mouseY < ((this.y + cellHeight) + cellHeight) + cellHeight) {
+            console.log("mouse over mandatory lower left square");
+            if (mouseIsPressed === true) {
+              board[lowerLeftCaptureSquare].captureMan();
+              // sould check for more capturable men from this token here.
+              this.mandatoryMoveDownLeft = false;
+              board[lowerLeftMoveToSquare] = new Token(this.column - 2, this.row + 2, this.owner);
+              board[(this.row * columns) + this.column] = null;
+
+              flag_updateBoard = true;
+            }
+          }
+        } else if (this.mandatoryMoveDownRight) {
+          if (this.row == rows - 1 || this.row == rows - 2 || this.column == columns - 3)
+            return; // unmovable anyway if true.
+          let lowerRightCaptureSquare = ((this.row + 1) * columns) + (this.column + 1);
+          let lowerRightMoveToSquare = ((this.row + 2) * columns) + (this.column + 2);
+          if (board[lowerRightMoveToSquare] != null)
+            return; // unmovable anyway if true.
+          if ((mouseX > (this.x + cellWidth) + cellWidth && mouseX < ((this.x + cellWidth) + cellWidth) + cellWidth) &&
+              (mouseY > (this.y + cellHeight) + cellHeight) && mouseY < ((this.y + cellHeight) + cellHeight) + cellHeight) {
+            if (mouseIsPressed === true) {
+              board[lowerRightCaptureSquare].captureMan();
+              this.mandatoryMoveDownRight = false;
+              board[lowerRightMoveToSquare] = new Token(this.column + 2, this.row + 2, this.owner);
+              board[(this.row * columns) + this.column] = null;
+
+              flag_updateBoard = true;
+            }
+          }
+        } else {
+          // move down left
+          if ((mouseX > (this.x - cellWidth) && mouseX < (this.x)) &&
+          (mouseY > (this.y + cellHeight) && mouseY < (this.y + cellHeight) + cellHeight)) {
+            if (mouseIsPressed === true) {
+              if (this.row == rows - 1 || this.column == 0)
+                return;
+
+              let lowerLeftSquare = ((this.row + 1) * columns) + (this.column - 1);
+              board[lowerLeftSquare] = new Token(this.column - 1, this.row + 1, this.owner);
+              board[(this.row * columns) + this.column] = null;
+              
+              flag_updateBoard = true;
+            }
+          }
+
+          // move down right;
+          if ((mouseX > (this.x + cellWidth) && mouseX < (this.x + (cellWidth * 2))) && 
+          (mouseY > (this.y + cellHeight) && (mouseY < this.y + cellHeight) + cellHeight)) {
+            console.log("mouse over lowerRight Square")
+            
+            if (mouseIsPressed === true) {
+              if (this.row == rows - 1 || this.column == columns - 1)
+                return;
+              
+              let lowerRightSquare = ((this.row + 1) * columns) + (this.column + 1);
+              board[lowerRightSquare] = new Token(this.column + 1, this.row + 1, this.owner);
+              board[(this.row * columns) + this.column] = null;
+              
+              flag_updateBoard = true;
+            }
           }
         }
-      } else {
-        // TODO: move
       }
     }
   }
 
   selectIfMandatoryJump() {
-    let upperLeftSquare, upperRightSquare;
-    if (this.column != 0)
+    let upperLeftSquare, upperRightSquare, lowerLeftSquare, lowerRightSquare;
+    let upperLeftJumpSpot, upperRightJumpSpot, lowerLeftJumpSpot, lowerRightJumpSpot;
+
+    if (this.column != 0 && this.row != 0) // unmovable anyway if true.
       upperLeftSquare = board[((this.row - 1) * columns) + (this.column - 1)];
     else
       upperLeftSquare = null;
 
-    if (this.column != columns - 1)
-      pperRightSquare = board[((this.row - 1) * columns) + (this.column + 1)];
+    if (this.column != columns - 1 && this.row != 0) // unmovable anyway if true.
+      upperRightSquare = board[((this.row - 1) * columns) + (this.column + 1)];
     else
       upperRightSquare = null;
     
-    if (upperLeftSquare != null && upperLeftSquare.owner.name != this.owner.name) {
-      this.selected = true;
-      this.mandatoryMove = true;
-    } else if (upperRightSquare != null && upperRightSquare.owner.name != this.owner.name) {
-      this.selected = true;
-      this.mandatoryMove = true;
+    if (this.column != 0 && this.row != rows - 1)
+      lowerLeftSquare = board[((this.row + 1) * columns) + (this.column - 1)];
+    else
+      lowerLeftSquare = null;
+    
+    if (this.column != columns - 1 && this.row != rows - 1)
+      lowerRightSquare = board[((this.row + 1) * columns) + (this.column + 1)];
+    else
+      lowerRightSquare = null;
+
+    
+    if (this.row > 1 && this.column > 1)
+      upperLeftJumpSpot = board[((this.row - 2) * columns) + this.column - 2];
+    else
+      upperLeftJumpSpot = -1; // we can continue only if upperLeftJumpSpot is null, which can only be pulled from board
+
+    if (this.row > 1 && this.column < columns - 3) 
+      upperRightJumpSpot = board[((this.row - 2) * columns) + this.column + 2];
+    else
+      upperRightJumpSpot = -1;
+
+    if (this.row < rows - 3 && this.column > 1)
+      lowerLeftJumpSpot = board[((this.row + 2) * columns) + this.column - 2];
+    else
+      lowerLeftJumpSpot = -1;
+
+    if (this.row < rows - 3 && this.column < columns - 3)
+      lowerRightJumpSpot = board[((this.row + 2) * columns) + this.column + 2];
+
+
+    if (currentPlayerName == owners[0].name) {
+      if (upperLeftJumpSpot == null && upperLeftSquare != null && upperLeftSquare.owner.name != this.owner.name) {
+        this.selected = true;
+        this.mandatoryMoveUpLeft = true;
+      } else if (upperRightJumpSpot == null && upperRightSquare != null && upperRightSquare.owner.name != this.owner.name) {
+        this.selected = true;
+        this.mandatoryMoveUpRight = true;
+      }
+    } else {
+      if (lowerLeftJumpSpot == null && lowerLeftSquare != null && lowerLeftSquare.owner.name != this.owner.name) {
+        this.selected = true;
+        this.mandatoryMoveDownLeft = true;
+      } else if (lowerRightJumpSpot == null && lowerRightSquare != null && lowerRightSquare.owner.name != this.owner.name) {
+        this.selected = true;
+        this.mandatoryMoveDownRight = true;
+      }
     }
   }
 
+  selectIfMousePress() {
+    if (mouseIsPressed === true) {
+      if ((mouseX > this.x && mouseX < this.x + cellWidth) &&
+          (mouseY > this.y && mouseY < this.y + cellHeight)) {
+        clearAllSelected()
+        this.selected = true;
+      }
+    }
+  }
+
+      /* for (let i = 0; i < board.length; i++) {
+        if (board[i] != null) {
+          if (board[i].owner.name == currentPlayerName) {
+            if ((mouseX > board[i].x && mouseX < board[i].x + cellWidth) &&
+                (mouseY > board[i].y && mouseY < board[i].y + cellHeight)) {
+
+            }
+          }
+        }
+      } */
+    //}
+  //}
+
   captureMan() {
-    this = null;
+    // TODO: Destroy;
+    // TODO: set a flag to check for any more 
+    board[(this.row * columns) + this.column] = null;
+    flag_manCaptured = true;
   }
 
   draw() {
     // TODO: draw king version of token if token type is king
-    selectIfMousePress();
-    selectIfMandatoryJump();
+    this.selectIfMousePress();
+    this.selectIfMandatoryJump();
+    this.move();
     if (this.owner.isFirstPlayer) {
       if (!this.selected)
         image(redTokenImg, this.x + 3, this.y + 3, cellWidth - 6, cellHeight - 6);
@@ -282,12 +534,21 @@ class Token {
     }
   }
 
-  parse(JSONData) {
+  static parseWithOwner(JSONData, owner) {
+    let token = new Token(JSONData.column, JSONData.row, owner);
+    token.tokenType = JSONData.tokenType;
+    token.selected = JSONData.selected;
+    token.mandatoryMoveUpLeft = JSONData.mandatoryMoveLeft;
+    token.mandatoryMoveUpRight = JSONData.mandatoryMoveRight;
+    return token;
+  }
+
+  static parse(JSONData) {
     let token = new Token(JSONData.column, JSONData.row, Owner.parse(JSONData.owner));
     token.tokenType = JSONData.tokenType;
     token.selected = JSONData.selected;
-    token.mandatoryMoveLeft = JSONData.mandatoryMoveLeft;
-    token.mandatoryMoveRight = JSONData.mandatoryMoveRight;
+    token.mandatoryMoveUpLeft = JSONData.mandatoryMoveLeft;
+    token.mandatoryMoveUpRight = JSONData.mandatoryMoveRight;
     return token;
   }
   
